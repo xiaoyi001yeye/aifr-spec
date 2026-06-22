@@ -1,0 +1,3 @@
+display_name: AIFR Spec
+short_description: Convert requirements into AIFR specs and check their quality.
+default_prompt: Use this skill to convert requirement descriptions into AIFR YAML specs, review existing specs, and validate them against the local schema, examples, quality checklist, and traceability guidance.
