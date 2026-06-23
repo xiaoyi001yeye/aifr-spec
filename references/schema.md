@@ -4,11 +4,13 @@ AIFR specifications are YAML documents that describe a requirement with enough b
 
 ## V1 Use Cases
 
+- Grill vague requirement requests into explicit scope, boundaries, rules, acceptance criteria, and open questions before drafting or implementation.
 - Convert a natural language requirement description into a structured AIFR YAML spec.
 - Check an existing AIFR YAML spec for structural quality, traceability, and review readiness.
 - Generate, compare, and explain semantic requirement version changes.
 - Describe a release or product baseline as a snapshot of requirement versions.
 - Locate requirements through stable ids, manifests, indexes, and canonical paths.
+- Annotate stable code entrypoints with AIFR requirement ids for implementation traceability.
 
 ## Top-Level Fields
 
@@ -197,6 +199,8 @@ Use `trace` to guide implementation and testing.
 
 - `expected_code`: Expected service, module, method, handler, or command targets.
 - `expected_tests`: Expected automated test classes, files, or suites.
+
+Code entrypoint comments are implementation traceability aids. They should use existing requirement ids from `aifr_spec.id` and should be placed at stable entrypoints identified by `trace.expected_code`, not modeled as a separate schema field in V1.
 
 ### risk
 

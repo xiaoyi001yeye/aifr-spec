@@ -1,0 +1,232 @@
+aifr_spec:
+  schema_version: "1.0.0"
+  id: REQ-PRED-0001
+  version: "1.0.0"
+  title: 娱乐足球比分猜测网页
+  type: functional
+  status: draft
+  priority: medium
+
+  identity:
+    primary_domain: PRED
+    domain_path: pred
+    frozen_slug: guess-football-final-score
+    canonical_path: aifr/requirements/items/pred/REQ-PRED-0001--guess-football-final-score/spec.aifr.yaml
+    naming_standard_version: "1.0.0"
+
+  lifecycle:
+    created_at: "2026-06-23"
+    updated_at: "2026-06-23"
+    owner: demo
+    reviewers:
+      - product
+      - engineering
+      - qa
+
+  versioning:
+    change_type: initial
+    previous_version: null
+    supersedes: []
+    superseded_by: null
+    breaking_change: false
+    change_summary: 初始版本：用户在简单网页输入两个足球队后，系统随机返回一个娱乐性质的最终比分猜测。
+
+  revision_history:
+    - version: "1.0.0"
+      change_type: initial
+      summary: 初始娱乐足球比分猜测网页需求。
+
+  intent:
+    user_goal: 用户输入两个足球队后，可以在简单网页上得到一个娱乐性质的最终比分猜测。
+    business_value: 提供轻量互动 demo，展示如何用 AIFR 描述经过 grill 后边界清晰的需求。
+
+  scope:
+    in:
+      - 提供一个简单网页，包含两个足球队名称输入框和一个猜比分操作。
+      - 用户提交两个不同且非空的足球队名称后，系统随机生成一个最终比分猜测。
+      - 比分结果按用户输入顺序展示为 team_a goals : team_b goals。
+      - 比分应更像真实足球比分：低比分更常见，允许少量大比分，但单队进球数不得超过 7。
+      - 输出必须包含“仅供娱乐，不保证准确”的免责声明。
+    out:
+      - 接入真实赛程、赔率、排名、伤停、历史交锋或实时比分数据。
+      - 基于球队实力、主客场、联赛或历史数据建模。
+      - 保证预测准确性、提供投注建议或解释预测依据。
+      - 保存用户历史猜测记录。
+      - 支持加时赛、点球大战、多场比赛批量预测或账号体系。
+
+  actors:
+    primary:
+      - user
+    secondary:
+      - score_guess_page
+      - score_guess_generator
+
+  domain_terms:
+    team_a: 用户输入的第一个足球队名称，比分展示时保持在左侧。
+    team_b: 用户输入的第二个足球队名称，比分展示时保持在右侧。
+    score_guess: 系统随机生成的常规时间最终比分猜测。
+    goal_count: 单队进球数，必须是 0 到 7 之间的整数。
+    plausible_score_distribution: 低比分更常见、高比分偶尔出现的随机生成策略。
+    entertainment_disclaimer: 提醒用户该比分仅供娱乐且不保证准确的说明。
+
+  preconditions:
+    - 用户已经打开比分猜测网页。
+    - 页面提供两个球队名称输入框。
+
+  rules:
+    - id: RULE-001
+      description: 系统必须要求用户提供两个非空足球队名称。
+      invariant: trim(team_a) != "" and trim(team_b) != ""
+
+    - id: RULE-002
+      description: 两个足球队名称归一化后不得相同。
+      invariant: normalize(team_a) != normalize(team_b)
+
+    - id: RULE-003
+      description: 系统必须随机生成比分，同样输入不要求每次返回相同比分。
+      invariant: score_guess is produced by random_generation
+
+    - id: RULE-004
+      description: 单队进球数必须是 0 到 7 之间的整数。
+      invariant: goal_count is integer and 0 <= goal_count <= 7
+
+    - id: RULE-005
+      description: 随机生成策略必须让 0 到 3 球比 4 到 7 球更常见，以避免比分非常离谱。
+      invariant: probability(goal_count in 0..3) > probability(goal_count in 4..7)
+
+    - id: RULE-006
+      description: 输出结果必须按用户输入顺序展示，不引入主队或客队语义。
+      invariant: displayed_score_order = team_a then team_b
+
+    - id: RULE-007
+      description: 输出结果必须包含娱乐免责声明。
+      invariant: response includes entertainment_disclaimer
+
+  scenarios:
+    - id: SCN-001
+      name: 用户输入两个有效球队后获得娱乐比分
+      given:
+        - team_a = "Brazil"
+        - team_b = "Argentina"
+      when:
+        - 用户点击猜比分
+      then:
+        - 页面展示 Brazil 与 Argentina 的比分猜测
+        - 两个进球数都是 0 到 7 之间的整数
+        - 页面展示“仅供娱乐，不保证准确”或等价免责声明
+
+    - id: SCN-002
+      name: 用户缺少一个球队时拒绝生成比分
+      given:
+        - team_a = "France"
+        - team_b = ""
+      when:
+        - 用户点击猜比分
+      then:
+        - 页面不展示比分猜测
+        - 页面提示需要填写两个足球队名称
+
+    - id: SCN-003
+      name: 用户输入相同球队时拒绝生成比分
+      given:
+        - team_a = "Spain"
+        - team_b = " Spain "
+      when:
+        - 用户点击猜比分
+      then:
+        - 页面不展示比分猜测
+        - 页面提示两个足球队不能相同
+
+    - id: SCN-004
+      name: 用户多次请求时可以得到不同随机结果
+      given:
+        - team_a = "Japan"
+        - team_b = "Korea"
+      when:
+        - 用户多次点击猜比分
+      then:
+        - 页面每次都返回 0 到 7 范围内的比分
+        - 系统不要求相同输入始终返回同一比分
+
+  acceptance_criteria:
+    - id: AC-001
+      text: 页面必须提供两个足球队名称输入框和一个触发猜比分的操作。
+      verifies:
+        - RULE-001
+
+    - id: AC-002
+      text: 当用户提供两个不同且非空的球队名称时，页面必须展示按输入顺序排列的比分猜测和娱乐免责声明。
+      verifies:
+        - RULE-001
+        - RULE-002
+        - RULE-006
+        - RULE-007
+
+    - id: AC-003
+      text: 比分中的每个进球数必须是 0 到 7 之间的整数。
+      verifies:
+        - RULE-004
+
+    - id: AC-004
+      text: 生成策略必须配置为低比分更常见，且 0 到 3 球的总权重大于 4 到 7 球的总权重。
+      verifies:
+        - RULE-005
+
+    - id: AC-005
+      text: 当任一球队名称为空时，页面必须拒绝生成比分并提示用户填写两个足球队名称。
+      verifies:
+        - RULE-001
+
+    - id: AC-006
+      text: 当两个球队名称归一化后相同时，页面必须拒绝生成比分并提示用户输入不同球队。
+      verifies:
+        - RULE-002
+
+    - id: AC-007
+      text: 系统不得依赖外部足球数据、实时接口、赔率或历史比赛数据生成比分。
+      verifies:
+        - RULE-003
+
+  interfaces:
+    ui:
+      - surface: football_score_guess_page
+        input_fields:
+          - team_a
+          - team_b
+        actions:
+          - guess_score
+        output_fields:
+          - score_guess
+          - validation_error
+          - entertainment_disclaimer
+
+  trace:
+    expected_code:
+      - component: FootballScoreGuessPage
+      - service: ScoreGuessGenerator
+      - method_hint: generateRandomScoreGuess
+    expected_tests:
+      - FootballScoreGuessPageTest
+      - ScoreGuessGeneratorTest
+
+  risk:
+    level: low
+    reasons:
+      - demo 版本不处理支付、个人敏感信息或外部系统写入。
+      - 输出明确限定为娱乐性质，不保证准确且不提供投注建议。
+
+  non_functional:
+    performance:
+      - 点击猜比分后，页面应在 500ms 内展示结果或校验错误。
+    reliability:
+      - 输入校验失败时不得展示上一次或部分生成的比分作为新结果。
+    security:
+      - 球队名称应作为普通文本展示，避免脚本注入。
+    accessibility:
+      - 两个输入框和猜比分按钮应有可理解的标签。
+    compliance:
+      - 页面不得暗示投注建议、胜负保证或真实数据分析结论。
+
+  open_questions:
+    - 低比分和大比分的具体随机权重是否需要在后续版本中产品化配置？
+    - 是否需要展示“再猜一次”按钮，还是复用同一个猜比分操作？

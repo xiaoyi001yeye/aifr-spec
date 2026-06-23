@@ -77,6 +77,10 @@ When reviewing a spec, report:
 - `intent.user_goal` describes the user-visible outcome.
 - `intent.business_value` explains why the requirement matters.
 - `scope.in` and `scope.out` make boundaries explicit.
+- Ambiguous requirement requests have been grilled into explicit in-scope behavior, out-of-scope behavior, assumptions, and open questions.
+- Requirement grilling used one-question-at-a-time interaction for blocking decisions, unless answers were discovered from source evidence.
+- Ambiguous grill requests asked the user to choose interactive grill or self-grill before proceeding.
+- Self-grill, when used, stopped at or before 50 rounds and reported assumptions, open questions, and deferred decisions.
 - `domain_terms` defines calculation terms, status names, and business vocabulary used by rules.
 - Preconditions are concrete enough to decide whether the requirement applies.
 
@@ -103,6 +107,8 @@ When reviewing a spec, report:
 ## Traceability
 
 - Expected code targets identify the likely service, module, method, handler, or command.
+- Code entrypoint comments, when requested or present, reference existing `aifr_spec.id` values.
+- Code entrypoint comments are placed on stable handlers, service methods, commands, jobs, policies, adapters, or orchestration functions rather than scattered through private helpers.
 - Expected tests identify test files, classes, or suites.
 - Acceptance criteria link back to rules.
 - High-risk requirements identify auditability, security, compliance, or explicit review needs.

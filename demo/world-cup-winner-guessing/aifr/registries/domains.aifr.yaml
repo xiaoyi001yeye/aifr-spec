@@ -1,0 +1,7 @@
+domains:
+  - code: PRED
+    path: pred
+    name: Prediction
+    description: 娱乐性质的冠军猜测、候选池配置和随机结果展示相关需求
+    id_number_width: 4
+

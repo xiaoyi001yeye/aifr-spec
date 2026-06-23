@@ -1,0 +1,8 @@
+requirements:
+  - id: REQ-PRED-0001
+    title: 娱乐足球比分猜测网页
+    domain: PRED
+    version: "1.0.0"
+    status: draft
+    path: aifr/requirements/items/pred/REQ-PRED-0001--guess-football-final-score/spec.aifr.yaml
+

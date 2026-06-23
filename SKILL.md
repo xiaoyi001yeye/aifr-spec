@@ -1,15 +1,16 @@
 ---
 name: aifr-spec
-description: Use when creating, updating, locating, comparing, reviewing, validating, or versioning AIFR requirements, baselines, naming paths, schema fields, output formats, traceability, or repository-local AIFR specs.
+description: Use when grilling, creating, updating, locating, comparing, reviewing, validating, versioning, or adding trace comments for AIFR requirements, baselines, naming paths, schema fields, output formats, or repository-local specs.
 ---
 
 # AIFR Spec
 
-Use this skill for AIFR requirement specifications: turning source material into specs, revising existing specs, comparing semantic versions, describing baselines, locating requirement files, and checking spec quality.
+Use this skill for AIFR requirement specifications: grilling vague requests, turning source material into specs, revising existing specs, comparing semantic versions, describing baselines, locating requirement files, and checking spec quality.
 
 ## When to Use
 
-- User mentions AIFR, requirement specs, baselines, canonical paths, schema fields, traceability, quality checks, or `validate_aifr_spec.py`.
+- User mentions AIFR, requirement specs, baselines, canonical paths, schema fields, traceability, trace comments, requirement id comments in code, quality checks, or `validate_aifr_spec.py`.
+- User asks to help complete or implement a requirement, but the business intent, acceptance boundary, or implementation constraints are still fuzzy.
 - User provides raw requirements, product notes, meeting notes, issues, or feature descriptions and wants structured AIFR output.
 - User asks whether a requirement change is patch/minor/major, what changed, or what code/test impact follows.
 - User asks to find a requirement by id, title, keyword, baseline, or canonical path.
@@ -22,16 +23,46 @@ Read only the relevant references before acting:
 
 | Task | Required references |
 | --- | --- |
+| Grill vague requirements before implementation or spec drafting | `references/requirement-grilling.md`, `references/schema.md` |
 | Draft or revise specs | `references/schema.md`, `references/naming.md`, `references/output-format.md`, `references/examples.md` |
 | Change schema fields | `references/schema.md`, `references/schema.zh-CN.md` |
 | Create, move, or find files | `references/naming.md` |
 | Generate version updates, change sets, impact analysis, or baselines | `references/output-format.md` |
 | Review spec quality | `references/schema.md`, `references/quality-checklist.md`, `references/naming.md`, `references/output-format.md`, `references/traceability.md` |
 | Add source, decision, test, or implementation mappings | `references/traceability.md` |
+| Add code entry comments aligned to requirement ids | `references/traceability.md`, `references/naming.md` |
 
 When `references/schema.md` changes, update `references/schema.zh-CN.md` in the same change.
 
 ## Core Workflows
+
+### Grill Requirement Boundaries
+
+Use this before drafting or implementing when the user says to complete a requirement but the requirement boundary is still unclear. Keep the discussion mostly at the requirement level; only ask about technical, data, migration, rollout, or operational details when they are necessary to define the requirement boundary.
+
+First choose the grill mode:
+
+- If the user explicitly asks for self-grill, use self-grill immediately.
+- If the user explicitly asks to be interviewed, questioned, or grilled interactively, use interactive grill.
+- If the user mentions grill but does not specify interactive grill or self-grill, stop and ask which mode to use. Explain that self-grill means the agent interrogates its own requirement understanding, challenges assumptions, and records unresolved gaps without asking the user each round.
+
+Interactive grill:
+
+1. Extract the current requirement candidate: user goal, business value, included scope, excluded scope, actors, rules, scenarios, acceptance criteria, interfaces, risks, and non-functional constraints.
+2. Explore before asking. If a boundary answer can be found in existing specs, code, README, issues, or source material the user provided, inspect that source instead of asking.
+3. Identify the next blocking branch. Use `references/requirement-grilling.md` to separate in-scope behavior, out-of-scope behavior, unknowns, assumptions, and implementation constraints that must be decided now.
+4. Ask exactly one blocking question, include your recommended answer, and wait for the user's reply before asking the next question or drafting the spec. Do not batch questions.
+5. Repeat until every blocking branch is resolved by evidence, user answer, or explicit deferral.
+6. Restate the grilled requirement. Summarize the agreed intent, scope in/out, rules, acceptance criteria, open questions, and anything deliberately deferred.
+
+Self-grill:
+
+1. Extract the current requirement candidate.
+2. Run an internal interviewer/respondent loop using `references/requirement-grilling.md`: ask the next strongest boundary question, answer it from source evidence or stated assumptions, then record the decision, assumption, or gap.
+3. Stop when every blocking branch is resolved or deferred, or after 50 rounds at most.
+4. Report the self-grill summary: resolved decisions, assumptions, open questions, deferred items, and whether the requirement is safe to draft or implement.
+
+Done only when the grill mode is explicit, the requirement has explicit in-scope and out-of-scope boundaries, acceptance criteria are testable, every blocking branch has been answered or explicitly deferred, and the user can choose to draft an AIFR spec or implement from the grilled requirement without silent scope expansion. If interactive grill has a blocking question, stop after asking that one question. If self-grill reaches 50 rounds, stop and report remaining gaps instead of continuing.
 
 ### Draft Requirement Specs
 
@@ -64,6 +95,17 @@ Done only when every baseline entry has an id and an explicit version or `unknow
 Read `aifr/manifest.aifr.yaml` first when it exists. For id lookup, extract the domain code, resolve the domain path through `aifr/registries/domains.aifr.yaml` or convention, then search `aifr/requirements/items/<domain-path>/<id>--*/spec.aifr.yaml`. For title, keyword, or baseline lookup, use available indexes before opening candidate spec files. If multiple canonical matches exist for one id, report a conflict and do not guess.
 
 Done only when each returned candidate is tied back to `aifr_spec.id`; if no unique match exists, report the ambiguity instead of selecting a best guess.
+
+### Annotate Code Entrypoints
+
+Add or update concise trace comments at implementation entrypoints so code can be traced back to AIFR requirement ids.
+
+1. Resolve the requirement id. Use ids provided by the user or locate the requirement file. Confirm each id against `aifr_spec.id`; if a match is missing or ambiguous, report it and do not annotate that id.
+2. Select stable entrypoints. Start from `trace.expected_code`, then inspect nearby code to choose public handlers, service methods, commands, jobs, policies, adapters, or workflow orchestration functions. Avoid private helpers unless they are the only stable boundary.
+3. Add minimal comments. Use the local language's normal documentation or line-comment style and the format rules in `references/traceability.md`. Keep comments factual; do not paste requirement prose into code.
+4. Report coverage. List each requirement id, annotated entrypoint, and any unresolved requirement or code mapping gap.
+
+Done only when every requested requirement id is resolved or explicitly reported as unresolved, every annotated code entrypoint maps to an existing `aifr_spec.id`, comments are placed at stable entrypoints rather than low-level helpers, and every ambiguous mapping is listed as an open question.
 
 ### Quality Check Specs
 

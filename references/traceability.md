@@ -66,6 +66,49 @@ trace:
 
 Code mapping should be specific enough for an implementer to find the change area without forcing an exact file path too early.
 
+## Code Entrypoint Annotation
+
+Trace comments align implementation entrypoints with AIFR requirement ids. When aligning implementation with AIFR requirements, add concise comments at stable code entrypoints named or implied by `trace.expected_code`.
+
+Good annotation targets include:
+
+- Public service methods that enforce a requirement.
+- Controllers, handlers, or routes that expose the behavior.
+- Commands, jobs, policies, workflow orchestration functions, or adapters that own the requirement boundary.
+
+Avoid annotating every private helper, data mapper, or incidental utility. Use the local language's normal documentation or line-comment style and include the stable requirement id:
+
+```java
+// AIFR: REQ-PAY-0012/RULE-001
+public Money calculateRefundAmount(RefundRequest request) {
+  ...
+}
+```
+
+```typescript
+/**
+ * AIFR: REQ-PAY-0012
+ */
+export async function refundHandler(request: Request) {
+  ...
+}
+```
+
+Annotation rules:
+
+- The requirement id in code must match an existing `aifr_spec.id`.
+- Use `REQ-.../RULE-...` only when the entrypoint specifically enforces that rule.
+- Keep the comment short; do not paste requirement prose into code.
+- If several requirements share an entrypoint, list the ids in one comment.
+- If the correct requirement id or entrypoint is ambiguous, report the ambiguity instead of guessing.
+
+Completion checks:
+
+- Every requested requirement id is resolved to one `aifr_spec.id` or reported as unresolved.
+- Every modified entrypoint has one trace comment covering the relevant requirement ids.
+- Comments are not duplicated across low-level helpers when one stable entrypoint owns the behavior.
+- The final report names the requirement id, code entrypoint, and any mapping gap.
+
 ## Requirement Path Mapping
 
 Use `identity.canonical_path` to make the current authoritative file discoverable:

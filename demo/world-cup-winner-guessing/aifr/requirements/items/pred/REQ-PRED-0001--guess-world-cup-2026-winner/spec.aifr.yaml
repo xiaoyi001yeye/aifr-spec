@@ -1,0 +1,374 @@
+aifr_spec:
+  schema_version: "1.0.0"
+  id: REQ-PRED-0001
+  version: "1.1.0"
+  title: 娱乐 2026 世界杯冠军猜测网页
+  type: functional
+  status: draft
+  priority: medium
+
+  identity:
+    primary_domain: PRED
+    domain_path: pred
+    frozen_slug: guess-world-cup-2026-winner
+    canonical_path: aifr/requirements/items/pred/REQ-PRED-0001--guess-world-cup-2026-winner/spec.aifr.yaml
+    naming_standard_version: "1.0.0"
+
+  lifecycle:
+    created_at: "2026-06-23"
+    updated_at: "2026-06-23"
+    owner: demo
+    reviewers:
+      - product
+      - engineering
+      - qa
+
+  versioning:
+    change_type: minor
+    previous_version: "1.0.0"
+    supersedes: []
+    superseded_by: null
+    breaking_change: false
+    change_summary: 增强版本：系统按小组赛对战顺序逐场猜比分，生成积分和淘汰赛路径，最终猜出冠军。
+
+  revision_history:
+    - version: "1.0.0"
+      change_type: initial
+      summary: 初始 2026 世界杯冠军猜测网页需求，候选池固定为需求文档列出的参赛队。
+    - version: "1.1.0"
+      change_type: minor
+      summary: 新增整届赛事模拟过程：小组赛逐场比分、积分出线、淘汰赛路径和最终冠军。
+
+  intent:
+    user_goal: 用户想快速获得一个“哪个国家可能夺得 2026 世界杯冠军”的娱乐猜测。
+    business_value: 提供轻量互动 demo，展示自我 grill 后如何把模糊需求转成边界清楚、可实现、可测试的 AIFR 需求。
+
+  scope:
+    in:
+      - 提供一个简单网页，用户可以点击操作来模拟 2026 世界杯冠军归属。
+      - 系统必须从本需求文档列出的 48 支 2026 世界杯参赛队和小组分组中生成整届赛事模拟。
+      - 需求文档必须列出全部 48 支参赛队，并按大洲分组保存。
+      - 系统必须按小组赛对战顺序逐场生成娱乐性质比分。
+      - 系统必须根据模拟比分生成小组积分榜。
+      - 系统必须从小组赛模拟结果中选出 32 强：每组前两名和 8 个成绩最好的小组第三名。
+      - 系统必须继续模拟淘汰赛比分，直到生成最终冠军。
+      - 页面必须展示小组赛比分、积分榜、淘汰赛路径和最终冠军。
+      - 用户可以重复点击并获得新的随机猜测。
+      - 页面必须展示“仅供娱乐，不保证准确，不构成投注建议”的免责声明或等价文案。
+    out:
+      - 运行时接入真实赛程、实时比分、赔率、排名、伤停、新闻或历史比赛数据库。
+      - 从参赛队列表以外的国家或地区中生成冠军猜测。
+      - 声称结果是真实预测、投注建议、官方推荐或数据分析结论。
+      - 使用 FIFA 官方 logo、赛事视觉资产或未经授权的官方品牌包装。
+      - 要求用户输入国家、球队、偏好或个人信息。
+      - 保存用户历史猜测记录、账号信息或行为分析数据。
+      - 精确复刻官方 Annex C 中所有第三名晋级组合对应的淘汰赛配对。
+      - 解释被选中国家夺冠的真实原因。
+
+  actors:
+    primary:
+      - user
+    secondary:
+      - winner_guess_page
+      - winner_guess_generator
+      - world_cup_2026_team_pool
+
+  domain_terms:
+    world_cup_2026_team_pool: 本需求文档列出的 48 支 2026 世界杯参赛队集合，是冠军猜测的唯一候选来源。
+    participant_team: 2026 世界杯参赛队列表中的一个国家或地区展示名称。
+    group_stage_fixture_order: 四队小组的对战顺序：1v2、3v4、1v3、4v2、4v1、2v3。
+    predicted_score: 系统为一场比赛生成的娱乐性质比分。
+    simulated_standings: 根据预测比分计算出的积分、净胜球和进球数排序。
+    knockout_bracket: 从模拟出线队伍生成的娱乐性质淘汰赛路径。
+    winner_guess: 系统随机选中的 2026 世界杯冠军猜测国家或地区。
+    entertainment_disclaimer: 说明结果仅供娱乐、不保证准确、不构成投注建议的文案。
+
+  preconditions:
+    - 用户已经打开冠军猜测网页。
+    - 系统已加载本需求文档定义的 2026 世界杯参赛队列表。
+
+  source_references:
+    - name: 2026 FIFA World Cup teams list
+      url: https://en.wikipedia.org/wiki/2026_FIFA_World_Cup
+      retrieved_at: "2026-06-23"
+      note: 该页面列出 2026 世界杯 48 支参赛队；赛事正在进行，外部页面信息可能继续变化。
+    - name: 2026 FIFA World Cup group and match schedule
+      url: https://en.wikipedia.org/wiki/2026_FIFA_World_Cup
+      retrieved_at: "2026-06-23"
+      note: 该页面说明 12 个小组、48 队赛制、每组对战顺序和淘汰赛阶段。
+
+  participant_teams:
+    source_date: "2026-06-23"
+    total: 48
+    teams_by_confederation:
+      AFC:
+        - 澳大利亚
+        - 伊朗
+        - 伊拉克
+        - 日本
+        - 约旦
+        - 卡塔尔
+        - 沙特阿拉伯
+        - 韩国
+        - 乌兹别克斯坦
+      CAF:
+        - 阿尔及利亚
+        - 佛得角
+        - 刚果民主共和国
+        - 埃及
+        - 加纳
+        - 科特迪瓦
+        - 摩洛哥
+        - 塞内加尔
+        - 南非
+        - 突尼斯
+      CONCACAF:
+        - 加拿大
+        - 库拉索
+        - 海地
+        - 墨西哥
+        - 巴拿马
+        - 美国
+      CONMEBOL:
+        - 阿根廷
+        - 巴西
+        - 哥伦比亚
+        - 厄瓜多尔
+        - 巴拉圭
+        - 乌拉圭
+      OFC:
+        - 新西兰
+      UEFA:
+        - 奥地利
+        - 比利时
+        - 波黑
+        - 克罗地亚
+        - 捷克
+        - 英格兰
+        - 法国
+        - 德国
+        - 荷兰
+        - 挪威
+        - 葡萄牙
+        - 苏格兰
+        - 西班牙
+        - 瑞典
+        - 瑞士
+        - 土耳其
+
+  rules:
+    - id: RULE-001
+      description: 2026 世界杯参赛队候选池必须包含本需求文档列出的 48 支队伍。
+      invariant: world_cup_2026_team_pool.size = 48
+
+    - id: RULE-002
+      description: 每个冠军猜测结果必须来自 2026 世界杯参赛队候选池。
+      invariant: winner_guess in world_cup_2026_team_pool
+
+    - id: RULE-003
+      description: 系统不得返回候选池之外的国家或地区作为冠军猜测。
+      invariant: winner_guess not in external_country_pool
+
+    - id: RULE-004
+      description: 候选池中的队伍名称归一化后不得重复。
+      invariant: all normalize(participant_team) values are unique
+
+    - id: RULE-005
+      description: 用户可以重复触发猜测，同一页面会话不要求返回相同队伍。
+      invariant: repeated_guess may produce different winner_guess
+
+    - id: RULE-006
+      description: 输出结果必须包含娱乐和非投注免责声明。
+      invariant: response includes entertainment_disclaimer
+
+    - id: RULE-007
+      description: 小组赛必须按 1v2、3v4、1v3、4v2、4v1、2v3 的顺序为每个小组生成 6 场比赛。
+      invariant: each group has 6 predicted group_stage_fixture_order matches
+
+    - id: RULE-008
+      description: 每场比赛必须生成一个由两个非负整数构成的娱乐性质预测比分。
+      invariant: predicted_score = non_negative_integer ":" non_negative_integer
+
+    - id: RULE-009
+      description: 系统必须根据小组赛预测比分计算每组积分榜。
+      invariant: simulated_standings use points, goal_difference, and goals_for
+
+    - id: RULE-010
+      description: 系统必须从小组赛结果选出每组前两名和 8 个成绩最好的小组第三名进入 32 强。
+      invariant: round_of_32_qualifiers = group_top_two * 12 plus best_third_place * 8
+
+    - id: RULE-011
+      description: 系统必须模拟淘汰赛比分并逐轮淘汰，直到只剩一个冠军。
+      invariant: knockout_bracket reduces 32 teams to 1 champion
+
+    - id: RULE-012
+      description: 页面必须展示从小组赛到冠军的完整娱乐模拟过程。
+      invariant: page shows group_scores, standings, knockout_bracket, and champion
+
+  scenarios:
+    - id: SCN-001
+      name: 用户点击后获得参赛队范围内的冠军猜测
+      given:
+        - world_cup_2026_team_pool contains 48 participant teams
+        - world_cup_2026_team_pool includes "阿根廷", "巴西", "法国", and "日本"
+      when:
+        - 用户点击猜冠军
+      then:
+        - 页面展示一个来自 48 支参赛队候选池的国家或地区作为 2026 世界杯冠军猜测
+        - 页面展示娱乐和非投注免责声明
+
+    - id: SCN-002
+      name: 系统不会返回非参赛队
+      given:
+        - world_cup_2026_team_pool contains the documented 48 participant teams
+      when:
+        - 用户点击猜冠军
+      then:
+        - 页面不得展示不在候选池中的国家或地区
+
+    - id: SCN-003
+      name: 候选池数量不正确时拒绝生成结果
+      given:
+        - world_cup_2026_team_pool contains 47 teams
+      when:
+        - 用户点击猜冠军
+      then:
+        - 页面不展示冠军猜测
+        - 页面展示参赛队候选池配置错误
+
+    - id: SCN-004
+      name: 用户可以重复获得随机猜测
+      given:
+        - world_cup_2026_team_pool contains the documented 48 participant teams
+      when:
+        - 用户连续多次点击猜冠军
+      then:
+        - 每次返回结果都来自 48 支参赛队候选池
+        - 系统不要求每次返回同一个国家或地区
+
+    - id: SCN-005
+      name: 用户模拟整届赛事直到冠军
+      given:
+        - world_cup_2026_team_pool contains the documented 48 participant teams
+        - each group contains 4 teams
+      when:
+        - 用户点击重新模拟
+      then:
+        - 页面展示 72 场小组赛预测比分
+        - 页面展示 12 个小组积分榜
+        - 页面展示 32 强后的淘汰赛路径
+        - 页面展示最终冠军
+
+  acceptance_criteria:
+    - id: AC-001
+      text: 需求文档必须按大洲列出 48 支 2026 世界杯参赛队。
+      verifies:
+        - RULE-001
+        - RULE-004
+
+    - id: AC-002
+      text: 页面必须提供一个触发 2026 世界杯冠军猜测的主要操作。
+      verifies:
+        - RULE-002
+
+    - id: AC-003
+      text: 每次冠军猜测结果必须来自本需求文档列出的 48 支参赛队。
+      verifies:
+        - RULE-001
+        - RULE-002
+        - RULE-003
+
+    - id: AC-004
+      text: 当候选池缺失、数量不是 48 或名称重复时，系统必须拒绝生成结果并展示配置错误。
+      verifies:
+        - RULE-001
+        - RULE-004
+
+    - id: AC-005
+      text: 用户重复点击猜冠军时，系统允许返回不同队伍，但每次结果都必须来自 48 支参赛队候选池。
+      verifies:
+        - RULE-002
+        - RULE-005
+
+    - id: AC-006
+      text: 页面展示冠军猜测时，必须同时展示仅供娱乐、不保证准确、不构成投注建议的免责声明。
+      verifies:
+        - RULE-006
+
+    - id: AC-007
+      text: V1 运行时不得调用真实赛程、实时比分、赔率、排名、新闻或历史比赛外部数据源。
+      verifies:
+        - RULE-002
+
+    - id: AC-008
+      text: 系统必须为 12 个小组生成总计 72 场小组赛预测比分。
+      verifies:
+        - RULE-007
+        - RULE-008
+
+    - id: AC-009
+      text: 系统必须根据预测比分生成小组积分榜，并选出 32 支晋级队伍。
+      verifies:
+        - RULE-009
+        - RULE-010
+
+    - id: AC-010
+      text: 系统必须生成淘汰赛路径并最终展示唯一冠军。
+      verifies:
+        - RULE-011
+        - RULE-012
+
+  interfaces:
+    ui:
+      - surface: world_cup_winner_guess_page
+        actions:
+          - guess_winner
+        output_fields:
+          - winner_guess
+          - configuration_error
+          - entertainment_disclaimer
+    configuration:
+      - name: world_cup_2026_team_pool
+        source: aifr_spec.participant_teams
+        fields:
+          - confederation
+          - team_name
+
+  trace:
+    expected_code:
+      - component: WorldCupWinnerGuessPage
+      - service: WinnerGuessGenerator
+      - service: TournamentSimulator
+      - module: GroupStageFixtureOrder
+      - module: WorldCup2026TeamPool
+      - method_hint: generateWinnerGuess
+      - method_hint: simulateTournament
+    expected_tests:
+      - WorldCupWinnerGuessPageTest
+      - WinnerGuessGeneratorTest
+      - TournamentSimulatorTest
+      - WorldCup2026TeamPoolTest
+
+  risk:
+    level: low
+    reasons:
+      - demo 版本不处理支付、个人敏感信息或外部系统写入。
+      - 输出明确限定为娱乐性质，不保证准确且不构成投注建议。
+      - 不使用官方品牌资产，降低误导为官方服务的风险。
+
+  non_functional:
+    performance:
+      - 点击猜冠军后，页面应在 500ms 内展示结果或配置错误。
+    reliability:
+      - 参赛队候选池配置无效时不得展示上一次或部分生成的结果。
+    security:
+      - 参赛队名称应作为普通文本展示，避免脚本注入。
+    accessibility:
+      - 猜冠军按钮和结果区域应有可理解的标签。
+    compliance:
+      - 页面不得暗示投注建议、胜负保证、官方预测或真实数据分析结论。
+
+  open_questions:
+    - 如果官方参赛队名称展示方式变化，是否需要同步更新本需求文档中的 participant_teams？
+    - 是否需要在后续版本中精确实现官方 Annex C 的第三名晋级组合配对？
+    - 是否需要把真实比赛日期、城市和球场也展示在小组赛对战顺序中？
