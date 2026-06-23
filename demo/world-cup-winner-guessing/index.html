@@ -4,6 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>2026 World Cup Tournament Guess</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%2315201d'/%3E%3Cpath d='M22 10c2 2 6 3 10 3s8-1 10-3c1 10-1 19-6 25l-2 9h7v6H23v-6h7l-2-9c-5-6-7-15-6-25z' fill='%23d7a53b'/%3E%3Cpath d='M19 15h-7c1 11 5 17 13 19l-1-6c-4-2-6-5-7-8h3l-1-5zm26 0h7c-1 11-5 17-13 19l1-6c4-2 6-5 7-8h-3l1-5z' fill='%23f3cf66'/%3E%3Cpath d='M25 54h14l5 5H20l5-5z' fill='%23d7a53b'/%3E%3C/svg%3E">
   <style>
     :root {
       color-scheme: light;
@@ -66,17 +67,23 @@
       position: relative;
     }
 
-    .intro::after {
+    .intro::before {
       content: "";
       position: absolute;
-      right: -120px;
-      bottom: -120px;
-      width: 310px;
-      height: 310px;
-      border-radius: 50%;
-      border: 1px solid rgba(11, 107, 77, 0.22);
-      box-shadow: inset 0 0 0 38px rgba(11, 107, 77, 0.06);
+      inset: 0;
+      background:
+        linear-gradient(90deg, rgba(255, 253, 248, 0.94) 0%, rgba(255, 253, 248, 0.74) 52%, rgba(255, 253, 248, 0.48) 100%),
+        url("assets/world-cup-2026-logo.jpg");
+      background-position: center, right clamp(14px, 4vw, 34px) center;
+      background-repeat: no-repeat;
+      background-size: auto, auto min(82%, 430px);
+      opacity: 0.64;
       pointer-events: none;
+    }
+
+    .intro > * {
+      position: relative;
+      z-index: 1;
     }
 
     .brand {
@@ -95,6 +102,12 @@
       color: #fff;
       background: conic-gradient(from 30deg, var(--accent), #123d34, var(--red), var(--gold), var(--accent));
       box-shadow: 0 12px 28px rgba(11, 107, 77, 0.24);
+    }
+
+    .mark svg {
+      width: 26px;
+      height: 26px;
+      filter: drop-shadow(0 2px 2px rgba(0, 0, 0, 0.22));
     }
 
     h1 {
@@ -148,6 +161,18 @@
       box-shadow: 0 18px 34px rgba(11, 107, 77, 0.3);
     }
 
+    button.secondary {
+      color: var(--accent);
+      background: #fff;
+      border: 1px solid rgba(11, 107, 77, 0.34);
+      box-shadow: 0 10px 24px rgba(35, 32, 24, 0.1);
+    }
+
+    button.secondary:hover {
+      color: #fff;
+      background: var(--accent);
+    }
+
     button:focus-visible,
     summary:focus-visible {
       outline: 3px solid rgba(215, 165, 59, 0.85);
@@ -159,6 +184,14 @@
       color: var(--muted);
       font-size: 13px;
       line-height: 1.5;
+    }
+
+    .sync-status {
+      flex-basis: 100%;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 800;
+      line-height: 1.45;
     }
 
     .champion {
@@ -192,6 +225,16 @@
       line-height: 0.95;
       font-weight: 950;
       overflow-wrap: anywhere;
+    }
+
+    .winner .team-with-flag {
+      gap: 14px;
+      align-items: center;
+    }
+
+    .winner .flag-icon {
+      width: clamp(34px, 5vw, 54px);
+      height: clamp(24px, 3.6vw, 38px);
     }
 
     .path {
@@ -337,6 +380,41 @@
       text-align: right;
     }
 
+    .team-with-flag {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      min-width: 0;
+      vertical-align: middle;
+    }
+
+    .team-with-flag.right {
+      flex-direction: row-reverse;
+      justify-content: flex-start;
+    }
+
+    .flag-icon {
+      width: 22px;
+      height: 16px;
+      flex: 0 0 auto;
+      border-radius: 2px;
+      object-fit: cover;
+      box-shadow: 0 0 0 1px rgba(21, 32, 29, 0.12);
+      background: #fff;
+    }
+
+    .team-name {
+      min-width: 0;
+    }
+
+    .group-title .team-with-flag {
+      color: #fff;
+    }
+
+    .group-title .flag-icon {
+      box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.54);
+    }
+
     .score {
       min-width: 58px;
       padding: 7px 10px;
@@ -345,6 +423,44 @@
       color: var(--ink);
       text-align: center;
       font-weight: 950;
+    }
+
+    .score.real {
+      color: #fff;
+      background: var(--red);
+    }
+
+    .match-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 7px;
+      align-items: center;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      min-height: 22px;
+      padding: 0 7px;
+      border-radius: 999px;
+      color: var(--accent);
+      background: var(--soft);
+      font-size: 11px;
+      font-weight: 950;
+      text-transform: none;
+      letter-spacing: 0;
+    }
+
+    .badge.real {
+      color: #fff;
+      background: var(--red);
+    }
+
+    .match-detail {
+      grid-column: 1 / -1;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.45;
     }
 
     .rounds {
@@ -417,8 +533,22 @@
         text-align: left;
       }
 
+      .team-with-flag.right {
+        flex-direction: row;
+      }
+
       .score {
         width: fit-content;
+      }
+
+      .intro::before {
+        background:
+          linear-gradient(180deg, rgba(255, 253, 248, 0.86) 0%, rgba(255, 253, 248, 0.72) 58%, rgba(255, 253, 248, 0.88) 100%),
+          url("assets/world-cup-2026-logo.jpg");
+        background-position: center, right 12px top 12px;
+        background-repeat: no-repeat;
+        background-size: auto, auto min(70%, 250px);
+        opacity: 0.64;
       }
     }
   </style>
@@ -429,18 +559,29 @@
       <div class="intro panel">
         <div>
           <div class="brand" aria-label="World Cup tournament guessing demo">
-            <span class="mark" aria-hidden="true">★</span>
+            <span class="mark" aria-hidden="true">
+              <svg viewBox="0 0 64 64" focusable="false">
+                <path d="M22 10c2 2 6 3 10 3s8-1 10-3c1 10-1 19-6 25l-2 9h7v6H23v-6h7l-2-9c-5-6-7-15-6-25z" fill="#f4d16a"></path>
+                <path d="M19 15h-7c1 11 5 17 13 19l-1-6c-4-2-6-5-7-8h3l-1-5zm26 0h7c-1 11-5 17-13 19l1-6c4-2 6-5 7-8h-3l1-5z" fill="#ffe79a"></path>
+                <path d="M25 54h14l5 5H20l5-5z" fill="#f4d16a"></path>
+              </svg>
+            </span>
             <span>Champion Guess</span>
           </div>
           <h1>2026 世界杯冠军猜想</h1>
           <p class="lead">按小组赛对战顺序逐场猜比分，生成积分榜，再一路模拟淘汰赛直到猜出冠军。</p>
         </div>
         <div class="actions">
+          <button id="syncButton" class="secondary" type="button" aria-label="同步 2026 世界杯已完赛赛况">
+            <span aria-hidden="true">⇄</span>
+            同步赛况
+          </button>
           <button id="simulateButton" type="button" aria-label="重新模拟 2026 世界杯">
             <span aria-hidden="true">↻</span>
             重新模拟
           </button>
           <span class="disclaimer">仅供娱乐，不保证准确，不构成投注建议。</span>
+          <div class="sync-status" id="syncStatus">当前使用纯模拟赛果；点击同步赛况后，已完赛场次会以真实结果覆盖。</div>
         </div>
       </div>
 
@@ -459,6 +600,10 @@
             <strong id="knockoutMatchCount">31</strong>
             <span>Knockout matches</span>
           </div>
+          <div class="stat">
+            <strong id="syncedResultCount">0</strong>
+            <span>Synced actuals</span>
+          </div>
         </div>
       </aside>
     </section>
@@ -466,7 +611,7 @@
     <section class="section panel">
       <div class="section-header">
         <h2>小组赛积分榜</h2>
-        <p>每组按真实四队分组和 1v2、3v4、1v3、4v2、4v1、2v3 的对战顺序生成比分。</p>
+        <p>每组按真实四队分组生成比分；同步后，已完赛结果会进入积分计算，剩余场次继续模拟。</p>
       </div>
       <div class="groups" id="groupStandings"></div>
     </section>
@@ -474,7 +619,7 @@
     <section class="section panel">
       <div class="section-header">
         <h2>小组赛逐场比分</h2>
-        <p>这里体现从第一场到最后一场的小组赛模拟过程。</p>
+        <p>真实赛果与预测比分会在同一位置显示，并用标签区分来源。</p>
       </div>
       <div class="fixtures" id="groupFixtures"></div>
     </section>
@@ -482,7 +627,7 @@
     <section class="section panel">
       <div class="section-header">
         <h2>淘汰赛到冠军</h2>
-        <p>前两名加 8 个最佳第三名进入 32 强；V1 用模拟成绩种子排序生成娱乐化淘汰赛路径。</p>
+        <p>前两名加 8 个最佳第三名进入 32 强；同步赛况会改变未来出线、对阵和冠军模拟。</p>
       </div>
       <div class="rounds" id="knockoutRounds"></div>
       <p class="source">赛程和分组依据当前公开资料整理：2026 World Cup uses 12 groups and top two plus eight third-placed teams advance; group pages list each group’s teams and match order. Sources include <a href="https://en.wikipedia.org/wiki/2026_FIFA_World_Cup" target="_blank" rel="noreferrer">2026 FIFA World Cup</a> and linked group pages.</p>
@@ -491,8 +636,14 @@
 
   <script>
     const DISCLAIMER = "仅供娱乐，不保证准确，不构成投注建议。";
+    const SYNC_SNAPSHOT_META = Object.freeze({
+      sourceName: "2026 FIFA World Cup - Wikipedia",
+      sourceUrl: "https://en.wikipedia.org/wiki/2026_FIFA_World_Cup",
+      retrievedAt: "2026-06-23",
+      completedThrough: "2026-06-21"
+    });
 
-    // AIFR: REQ-PRED-0001/RULE-001,RULE-004,RULE-007
+    // AIFR: REQ-PRED-0001/RULE-001,RULE-004,RULE-007,RULE-013
     // Tournament data entrypoint: the embedded 48 teams and group order are the only runtime source.
     const WORLD_CUP_2026_GROUPS = Object.freeze({
       A: ["墨西哥", "南非", "韩国", "捷克"],
@@ -509,8 +660,59 @@
       L: ["英格兰", "克罗地亚", "加纳", "巴拿马"]
     });
 
-    // AIFR: REQ-PRED-0001/RULE-007
-    // Group-stage fixture order follows the tournament four-team group pairing sequence.
+    const TEAM_FLAG_CODES = Object.freeze({
+      "澳大利亚": "au",
+      "伊朗": "ir",
+      "伊拉克": "iq",
+      "日本": "jp",
+      "约旦": "jo",
+      "卡塔尔": "qa",
+      "沙特阿拉伯": "sa",
+      "韩国": "kr",
+      "乌兹别克斯坦": "uz",
+      "阿尔及利亚": "dz",
+      "佛得角": "cv",
+      "刚果民主共和国": "cd",
+      "埃及": "eg",
+      "加纳": "gh",
+      "科特迪瓦": "ci",
+      "摩洛哥": "ma",
+      "塞内加尔": "sn",
+      "南非": "za",
+      "突尼斯": "tn",
+      "加拿大": "ca",
+      "库拉索": "cw",
+      "海地": "ht",
+      "墨西哥": "mx",
+      "巴拿马": "pa",
+      "美国": "us",
+      "阿根廷": "ar",
+      "巴西": "br",
+      "哥伦比亚": "co",
+      "厄瓜多尔": "ec",
+      "巴拉圭": "py",
+      "乌拉圭": "uy",
+      "新西兰": "nz",
+      "奥地利": "at",
+      "比利时": "be",
+      "波黑": "ba",
+      "克罗地亚": "hr",
+      "捷克": "cz",
+      "英格兰": "gb-eng",
+      "法国": "fr",
+      "德国": "de",
+      "荷兰": "nl",
+      "挪威": "no",
+      "葡萄牙": "pt",
+      "苏格兰": "gb-sct",
+      "西班牙": "es",
+      "瑞典": "se",
+      "瑞士": "ch",
+      "土耳其": "tr"
+    });
+
+    // AIFR: REQ-PRED-0001/RULE-007,RULE-017
+    // Group-stage fixture order follows the four-team group pairing sequence used by the schedule-by-group view.
     const GROUP_STAGE_PAIRING_ORDER = Object.freeze([
       [0, 1],
       [2, 3],
@@ -520,16 +722,99 @@
       [1, 2]
     ]);
 
+    // AIFR: REQ-PRED-0001/RULE-013,RULE-014,RULE-015
+    // Synced real-result snapshot: completed matches override predictions while future matches remain simulated.
+    const SYNCED_MATCH_RESULTS = Object.freeze([
+      ["A", "墨西哥", "南非", 2, 0, "2026-06-12 03:00"],
+      ["A", "韩国", "捷克", 2, 1, "2026-06-12 10:00"],
+      ["A", "捷克", "南非", 1, 1, "2026-06-19 00:00"],
+      ["A", "墨西哥", "韩国", 1, 0, "2026-06-19 09:00"],
+      ["B", "加拿大", "波黑", 1, 1, "2026-06-13 03:00"],
+      ["B", "卡塔尔", "瑞士", 1, 1, "2026-06-14 03:00"],
+      ["B", "瑞士", "波黑", 4, 1, "2026-06-19 03:00"],
+      ["B", "加拿大", "卡塔尔", 6, 0, "2026-06-19 06:00"],
+      ["C", "巴西", "摩洛哥", 1, 1, "2026-06-14 06:00"],
+      ["C", "海地", "苏格兰", 0, 1, "2026-06-14 09:00"],
+      ["C", "苏格兰", "摩洛哥", 0, 1, "2026-06-20 06:00"],
+      ["C", "巴西", "海地", 3, 0, "2026-06-20 08:30"],
+      ["D", "美国", "巴拉圭", 4, 1, "2026-06-13 09:00"],
+      ["D", "澳大利亚", "土耳其", 2, 0, "2026-06-14 12:00"],
+      ["D", "美国", "澳大利亚", 2, 0, "2026-06-20 03:00"],
+      ["D", "土耳其", "巴拉圭", 0, 1, "2026-06-20 11:00"],
+      ["E", "德国", "库拉索", 7, 1, "2026-06-15 01:00"],
+      ["E", "科特迪瓦", "厄瓜多尔", 1, 0, "2026-06-15 07:00"],
+      ["E", "德国", "科特迪瓦", 2, 1, "2026-06-21 04:00"],
+      ["E", "厄瓜多尔", "库拉索", 0, 0, "2026-06-21 08:00"],
+      ["F", "荷兰", "日本", 5, 2, "2026-06-15 04:00"],
+      ["F", "瑞典", "突尼斯", 4, 1, "2026-06-15 10:00"],
+      ["F", "荷兰", "瑞典", 1, 5, "2026-06-21 01:00"],
+      ["F", "突尼斯", "日本", 0, 4, "2026-06-21 12:00"],
+      ["G", "比利时", "埃及", 1, 1, "2026-06-16 03:00"],
+      ["G", "伊朗", "新西兰", 2, 2, "2026-06-16 09:00"],
+      ["G", "比利时", "伊朗", 0, 0, "2026-06-22 03:00"],
+      ["G", "新西兰", "埃及", 1, 3, "2026-06-22 09:00"],
+      ["H", "西班牙", "佛得角", 0, 0, "2026-06-16 00:00"],
+      ["H", "沙特阿拉伯", "乌拉圭", 1, 1, "2026-06-16 06:00"],
+      ["H", "西班牙", "沙特阿拉伯", 4, 0, "2026-06-22 00:00"],
+      ["H", "乌拉圭", "佛得角", 2, 2, "2026-06-22 06:00"],
+      ["I", "法国", "塞内加尔", 3, 1, "2026-06-17 03:00"],
+      ["I", "伊拉克", "挪威", 1, 4, "2026-06-17 06:00"],
+      ["J", "阿根廷", "阿尔及利亚", 3, 0, "2026-06-17 09:00"],
+      ["J", "奥地利", "约旦", 3, 1, "2026-06-17 12:00"],
+      ["K", "葡萄牙", "刚果民主共和国", 1, 1, "2026-06-18 01:00"],
+      ["K", "乌兹别克斯坦", "哥伦比亚", 1, 3, "2026-06-18 10:00"],
+      ["L", "英格兰", "克罗地亚", 4, 2, "2026-06-18 04:00"],
+      ["L", "加纳", "巴拿马", 1, 0, "2026-06-18 07:00"]
+    ].map(([group, home, away, homeScore, awayScore, playedAtBeijing]) => ({
+      group,
+      home,
+      away,
+      score: { home: homeScore, away: awayScore },
+      playedAtBeijing,
+      source: "synced-real"
+    })));
+
+    const ROUND_OF_32_SLOTS = Object.freeze([
+      { matchNo: 73, left: "2A", right: "2B" },
+      { matchNo: 74, left: "1E", rightThird: ["A", "B", "C", "D", "F"] },
+      { matchNo: 75, left: "1F", right: "2C" },
+      { matchNo: 76, left: "1C", right: "2F" },
+      { matchNo: 77, left: "1I", rightThird: ["C", "D", "F", "G", "H"] },
+      { matchNo: 78, left: "2E", right: "2I" },
+      { matchNo: 79, left: "1A", rightThird: ["C", "E", "F", "H", "I"] },
+      { matchNo: 80, left: "1L", rightThird: ["E", "H", "I", "J", "K"] },
+      { matchNo: 81, left: "1D", rightThird: ["B", "E", "F", "I", "J"] },
+      { matchNo: 82, left: "1G", rightThird: ["A", "E", "H", "I", "J"] },
+      { matchNo: 83, left: "2K", right: "2L" },
+      { matchNo: 84, left: "1H", right: "2J" },
+      { matchNo: 85, left: "1B", rightThird: ["E", "F", "G", "I", "J"] },
+      { matchNo: 86, left: "1J", right: "2H" },
+      { matchNo: 87, left: "1K", rightThird: ["D", "E", "I", "J", "L"] },
+      { matchNo: 88, left: "2D", right: "2G" }
+    ]);
+
+    const KNOCKOUT_ROUND_MAPS = Object.freeze([
+      { name: "Round of 16", matches: [[89, 74, 77], [90, 73, 75], [91, 76, 78], [92, 79, 80], [93, 83, 84], [94, 81, 82], [95, 86, 88], [96, 85, 87]] },
+      { name: "Quarterfinals", matches: [[97, 89, 90], [98, 93, 94], [99, 91, 92], [100, 95, 96]] },
+      { name: "Semifinals", matches: [[101, 97, 98], [102, 99, 100]] },
+      { name: "Final", matches: [[104, 101, 102]] }
+    ]);
+
     const elements = {
+      syncButton: document.getElementById("syncButton"),
       button: document.getElementById("simulateButton"),
       championName: document.getElementById("championName"),
       championPath: document.getElementById("championPath"),
       groupMatchCount: document.getElementById("groupMatchCount"),
       knockoutMatchCount: document.getElementById("knockoutMatchCount"),
+      syncedResultCount: document.getElementById("syncedResultCount"),
+      syncStatus: document.getElementById("syncStatus"),
       groupStandings: document.getElementById("groupStandings"),
       groupFixtures: document.getElementById("groupFixtures"),
       knockoutRounds: document.getElementById("knockoutRounds")
     };
+
+    let syncEnabled = false;
 
     function normalizeTeamName(teamName) {
       return teamName.trim().normalize("NFKC").toLocaleLowerCase("en-US");
@@ -624,18 +909,32 @@
         a.name.localeCompare(b.name);
     }
 
-    // AIFR: REQ-PRED-0001/RULE-007,RULE-009,RULE-010
+    function matchKey(group, home, away) {
+      return `${group}|${normalizeTeamName(home)}|${normalizeTeamName(away)}`;
+    }
+
+    function createResultLookup(results) {
+      return new Map(results.map((match) => [matchKey(match.group, match.home, match.away), match]));
+    }
+
+    function syncedResultFor(lookup, group, home, away) {
+      return lookup.get(matchKey(group, home, away));
+    }
+
+    // AIFR: REQ-PRED-0001/RULE-007,RULE-009,RULE-010,RULE-013,RULE-016
     // Group-stage simulation entrypoint: produces ordered fixtures, standings, and 32 qualifiers.
-    function simulateGroupStage(groups) {
+    function simulateGroupStage(groups, syncedResults = []) {
       const standings = {};
       const fixtures = [];
+      const resultLookup = createResultLookup(syncedResults);
 
       Object.entries(groups).forEach(([group, teams]) => {
         const table = createTable(group, teams);
         GROUP_STAGE_PAIRING_ORDER.forEach(([homeIndex, awayIndex], index) => {
           const home = teams[homeIndex];
           const away = teams[awayIndex];
-          const score = guessScore();
+          const syncedResult = syncedResultFor(resultLookup, group, home, away);
+          const score = syncedResult ? syncedResult.score : guessScore();
           recordMatch(table, home, away, score);
           fixtures.push({
             id: `${group}-${index + 1}`,
@@ -644,7 +943,10 @@
             label: `Group ${group} · Match ${index + 1}`,
             home,
             away,
-            score
+            score,
+            source: syncedResult ? "real" : "predicted",
+            playedAtBeijing: syncedResult ? syncedResult.playedAtBeijing : "",
+            sourceLabel: syncedResult ? "同步真实赛果" : "模拟预测"
           });
         });
         standings[group] = table.sort(sortTeams);
@@ -656,44 +958,100 @@
       return { standings, fixtures, qualifiers };
     }
 
-    function knockoutMatch(label, home, away) {
+    function seedLabel(seed) {
+      const position = seed.slice(0, 1);
+      const group = seed.slice(1);
+      if (position === "1") return `Winner Group ${group}`;
+      if (position === "2") return `Runner-up Group ${group}`;
+      return `3rd Group ${group}`;
+    }
+
+    function teamFromSeed(placements, seed) {
+      return placements[seed];
+    }
+
+    function selectThirdPlaceTeam(bestThirds, candidateGroups, usedThirdGroups) {
+      const preferred = bestThirds.find((team) => candidateGroups.includes(team.group) && !usedThirdGroups.has(team.group));
+      const fallback = bestThirds.find((team) => !usedThirdGroups.has(team.group));
+      const selected = preferred || fallback;
+      if (selected) usedThirdGroups.add(selected.group);
+      return selected;
+    }
+
+    function buildPlacements(standings) {
+      const placements = {};
+      Object.entries(standings).forEach(([group, table]) => {
+        placements[`1${group}`] = table[0];
+        placements[`2${group}`] = table[1];
+        placements[`3${group}`] = table[2];
+      });
+      return placements;
+    }
+
+    function knockoutMatch(label, home, away, matchNo) {
       const score = guessScore({ knockout: true });
       const winnerTeam = score.home > score.away ? home : away;
-      return { label, home: home.name, away: away.name, score, winner: winnerTeam.name, winnerTeam };
+      return {
+        label,
+        matchNo,
+        home: home.name,
+        away: away.name,
+        score,
+        winner: winnerTeam.name,
+        winnerTeam,
+        source: "predicted",
+        sourceLabel: "模拟预测"
+      };
     }
 
-    // AIFR: REQ-PRED-0001/RULE-011
-    // Knockout simulation entrypoint: advances the simulated 32-team field until one champion remains.
-    function simulateKnockoutStage(qualifiers) {
-      const roundNames = ["Round of 32", "Round of 16", "Quarterfinals", "Semifinals", "Final"];
-      let current = qualifiers;
-      const rounds = [];
+    function simulateRoundOf32(standings) {
+      const placements = buildPlacements(standings);
+      const bestThirds = Object.values(standings).map((table) => table[2]).sort(sortTeams).slice(0, 8);
+      const usedThirdGroups = new Set();
+      const matchesByNo = new Map();
+      const matches = ROUND_OF_32_SLOTS.map((slot) => {
+        const home = teamFromSeed(placements, slot.left);
+        const away = slot.right
+          ? teamFromSeed(placements, slot.right)
+          : selectThirdPlaceTeam(bestThirds, slot.rightThird, usedThirdGroups);
+        const rightLabel = slot.right ? seedLabel(slot.right) : `3rd Group ${slot.rightThird.join("/")}`;
+        const match = knockoutMatch(`Match ${slot.matchNo} · ${seedLabel(slot.left)} vs ${rightLabel}`, home, away, slot.matchNo);
+        matchesByNo.set(slot.matchNo, match);
+        return match;
+      });
+      return { round: { name: "Round of 32", matches }, matchesByNo };
+    }
 
-      roundNames.forEach((roundName) => {
-        const matches = [];
-        const winners = [];
-        for (let index = 0; index < current.length / 2; index += 1) {
-          const home = current[index];
-          const away = current[current.length - 1 - index];
-          const match = knockoutMatch(`${roundName} ${index + 1}`, home, away);
-          matches.push(match);
-          winners.push({ ...match.winnerTeam });
-        }
-        rounds.push({ name: roundName, matches });
-        current = winners.sort((a, b) => a.name.localeCompare(b.name));
+    // AIFR: REQ-PRED-0001/RULE-011,RULE-016
+    // Knockout simulation entrypoint: official match slots are filled from synced/simulated standings, then future matches are simulated.
+    function simulateKnockoutStage(standings) {
+      const roundOf32 = simulateRoundOf32(standings);
+      const rounds = [];
+      rounds.push(roundOf32.round);
+      const matchesByNo = roundOf32.matchesByNo;
+
+      KNOCKOUT_ROUND_MAPS.forEach((roundMap) => {
+        const matches = roundMap.matches.map(([matchNo, homeMatchNo, awayMatchNo]) => {
+          const home = matchesByNo.get(homeMatchNo).winnerTeam;
+          const away = matchesByNo.get(awayMatchNo).winnerTeam;
+          const match = knockoutMatch(`Match ${matchNo} · Winner ${homeMatchNo} vs Winner ${awayMatchNo}`, home, away, matchNo);
+          matchesByNo.set(matchNo, match);
+          return match;
+        });
+        rounds.push({ name: roundMap.name, matches });
       });
 
-      return { rounds, champion: rounds.at(-1).matches[0].winner };
+      return { rounds, champion: matchesByNo.get(104).winner };
     }
 
-    // AIFR: REQ-PRED-0001/RULE-007,RULE-008,RULE-009,RULE-010,RULE-011
+    // AIFR: REQ-PRED-0001/RULE-007,RULE-008,RULE-009,RULE-010,RULE-011,RULE-013,RULE-016
     // Full tournament entrypoint: validates data, simulates group scores, knockout scores, and final champion.
-    function simulateTournament(groups) {
+    function simulateTournament(groups, { syncedResults = [] } = {}) {
       const validationError = validateWorldCup2026Groups(groups);
       if (validationError) return { ok: false, error: validationError };
-      const groupStage = simulateGroupStage(groups);
-      const knockoutStage = simulateKnockoutStage(groupStage.qualifiers);
-      return { ok: true, ...groupStage, ...knockoutStage };
+      const groupStage = simulateGroupStage(groups, syncedResults);
+      const knockoutStage = simulateKnockoutStage(groupStage.standings);
+      return { ok: true, syncedCount: syncedResults.length, ...groupStage, ...knockoutStage };
     }
 
     function escapeHtml(value) {
@@ -704,17 +1062,34 @@
         .replaceAll('"', "&quot;");
     }
 
+    function flagCodeFor(teamName) {
+      return TEAM_FLAG_CODES[teamName] || "";
+    }
+
+    function flagImage(teamName) {
+      const code = flagCodeFor(teamName);
+      if (!code) return "";
+      const safeName = escapeHtml(teamName);
+      const src = `https://flagcdn.com/w40/${code}.png`;
+      const srcset = `https://flagcdn.com/w80/${code}.png 2x`;
+      return `<img class="flag-icon" src="${src}" srcset="${srcset}" alt="${safeName}国旗" loading="lazy" width="22" height="16">`;
+    }
+
+    function teamWithFlag(teamName, { right = false } = {}) {
+      return `<span class="team-with-flag ${right ? "right" : ""}">${flagImage(teamName)}<span class="team-name">${escapeHtml(teamName)}</span></span>`;
+    }
+
     function renderGroupStandings(standings) {
       elements.groupStandings.innerHTML = Object.entries(standings)
         .map(([group, table]) => `
           <article class="group-card">
-            <div class="group-title"><span>Group ${group}</span><span>${table[0].name}</span></div>
+            <div class="group-title"><span>Group ${group}</span><span>${teamWithFlag(table[0].name, { right: true })}</span></div>
             <table class="table">
               <thead><tr><th>Team</th><th>Pts</th><th>GD</th><th>GF</th></tr></thead>
               <tbody>
                 ${table.map((team) => `
                   <tr>
-                    <td>${escapeHtml(team.name)}</td>
+                    <td>${teamWithFlag(team.name)}</td>
                     <td>${team.points}</td>
                     <td>${team.goalDifference}</td>
                     <td>${team.goalsFor}</td>
@@ -730,10 +1105,14 @@
     function matchCard(match) {
       return `
         <article class="match-card">
-          <div class="match-meta">${escapeHtml(match.label)}</div>
-          <div class="team">${escapeHtml(match.home)}</div>
-          <div class="score">${match.score.home} : ${match.score.away}</div>
-          <div class="team right">${escapeHtml(match.away)}</div>
+          <div class="match-meta">
+            <span>${escapeHtml(match.label)}</span>
+            <span class="badge ${match.source === "real" ? "real" : ""}">${escapeHtml(match.sourceLabel || "模拟预测")}</span>
+          </div>
+          <div class="team">${teamWithFlag(match.home)}</div>
+          <div class="score ${match.source === "real" ? "real" : ""}">${match.score.home} : ${match.score.away}</div>
+          <div class="team right">${teamWithFlag(match.away, { right: true })}</div>
+          ${match.playedAtBeijing ? `<div class="match-detail">北京时间 ${escapeHtml(match.playedAtBeijing)} · 真实比赛结果已同步</div>` : ""}
         </article>
       `;
     }
@@ -768,18 +1147,33 @@
       renderGroupStandings(result.standings);
       renderGroupStage(result.fixtures);
       renderKnockoutStage(result.rounds);
-      elements.championName.textContent = result.champion;
-      elements.championPath.textContent = `${result.champion} 通过模拟淘汰赛夺冠。${DISCLAIMER}`;
+      elements.championName.innerHTML = teamWithFlag(result.champion);
+      elements.syncedResultCount.textContent = String(result.fixtures.filter((match) => match.source === "real").length);
+      elements.championPath.textContent = result.syncedCount > 0
+        ? `${result.champion} 在 ${result.syncedCount} 场真实赛果基础上继续模拟夺冠。${DISCLAIMER}`
+        : `${result.champion} 通过纯模拟淘汰赛夺冠。${DISCLAIMER}`;
       elements.championPath.classList.remove("error");
     }
 
-    // AIFR: REQ-PRED-0001/AC-007
-    // Initialization intentionally uses embedded schedule and team data only; no network request is made at runtime.
+    function renderCurrentTournament() {
+      const syncedResults = syncEnabled ? SYNCED_MATCH_RESULTS : [];
+      renderTournament(simulateTournament(WORLD_CUP_2026_GROUPS, { syncedResults }));
+      elements.syncStatus.textContent = syncEnabled
+        ? `已同步 ${SYNCED_MATCH_RESULTS.length} 场真实赛果，来源 ${SYNC_SNAPSHOT_META.sourceName}，抓取日期 ${SYNC_SNAPSHOT_META.retrievedAt}；未完赛场次继续模拟。`
+        : "当前使用纯模拟赛果；点击同步赛况后，已完赛场次会以真实结果覆盖。";
+    }
+
+    // AIFR: REQ-PRED-0001/AC-011
+    // Initialization uses embedded synced-result snapshots only; no network request is made at runtime.
     function initializeWorldCupTournamentPage() {
-      elements.button.addEventListener("click", () => {
-        renderTournament(simulateTournament(WORLD_CUP_2026_GROUPS));
+      elements.syncButton.addEventListener("click", () => {
+        syncEnabled = true;
+        renderCurrentTournament();
       });
-      renderTournament(simulateTournament(WORLD_CUP_2026_GROUPS));
+      elements.button.addEventListener("click", () => {
+        renderCurrentTournament();
+      });
+      renderCurrentTournament();
     }
 
     initializeWorldCupTournamentPage();
