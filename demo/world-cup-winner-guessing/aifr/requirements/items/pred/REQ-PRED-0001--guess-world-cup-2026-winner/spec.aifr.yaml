@@ -1,7 +1,7 @@
 aifr_spec:
   schema_version: "1.0.0"
   id: REQ-PRED-0001
-  version: "1.1.0"
+  version: "1.3.0"
   title: 娱乐 2026 世界杯冠军猜测网页
   type: functional
   status: draft
@@ -25,11 +25,11 @@ aifr_spec:
 
   versioning:
     change_type: minor
-    previous_version: "1.0.0"
+    previous_version: "1.2.0"
     supersedes: []
     superseded_by: null
     breaking_change: false
-    change_summary: 增强版本：系统按小组赛对战顺序逐场猜比分，生成积分和淘汰赛路径，最终猜出冠军。
+    change_summary: 增强版本：页面同步参赛队国旗图标，标题背景透明展示 2026 世界杯官方招贴画，并将项目图标更新为大力神杯风格。
 
   revision_history:
     - version: "1.0.0"
@@ -38,6 +38,12 @@ aifr_spec:
     - version: "1.1.0"
       change_type: minor
       summary: 新增整届赛事模拟过程：小组赛逐场比分、积分出线、淘汰赛路径和最终冠军。
+    - version: "1.2.0"
+      change_type: minor
+      summary: 新增同步赛况能力：已完赛结果覆盖对应场次，回显北京时间和真实比分，并影响剩余赛程、出线和淘汰赛模拟。
+    - version: "1.3.0"
+      change_type: minor
+      summary: 新增视觉素材要求：每支参赛队展示国旗图标，标题背景透明展示本届世界杯招贴画，项目图标改为大力神杯风格。
 
   intent:
     user_goal: 用户想快速获得一个“哪个国家可能夺得 2026 世界杯冠军”的娱乐猜测。
@@ -53,16 +59,27 @@ aifr_spec:
       - 系统必须从小组赛模拟结果中选出 32 强：每组前两名和 8 个成绩最好的小组第三名。
       - 系统必须继续模拟淘汰赛比分，直到生成最终冠军。
       - 页面必须展示小组赛比分、积分榜、淘汰赛路径和最终冠军。
+      - 页面必须在“重新模拟”按钮左侧提供“同步赛况”按钮。
+      - 用户点击“同步赛况”后，系统必须把已完赛赛事结果补充到对应小组赛场次位置。
+      - 同步的已完赛场次必须标识为真实比赛结果，并与预测结果做视觉或文案区分。
+      - 同步的已完赛场次必须回显比赛时间（北京时间）、比赛结果和赛果来源。
+      - 同步真实赛果必须进入积分榜计算，并影响未来出线、淘汰赛对阵和冠军模拟。
+      - 未完赛赛事必须继续保留预测比分，且标识为模拟预测。
+      - 页面必须为每支参赛队同步展示对应国旗图标，并在冠军、积分榜和比赛对阵中复用同一图标映射。
+      - “2026 世界杯冠军猜想”标题背景必须以低透明度展示本届世界杯招贴画，不能遮挡标题和主要操作。
+      - 项目浏览器图标和页面品牌标记必须更新为大力神杯风格图标。
       - 用户可以重复点击并获得新的随机猜测。
       - 页面必须展示“仅供娱乐，不保证准确，不构成投注建议”的免责声明或等价文案。
     out:
-      - 运行时接入真实赛程、实时比分、赔率、排名、伤停、新闻或历史比赛数据库。
+      - 运行时联网抓取真实赛程、实时比分、赔率、排名、伤停、新闻或历史比赛数据库。
       - 从参赛队列表以外的国家或地区中生成冠军猜测。
       - 声称结果是真实预测、投注建议、官方推荐或数据分析结论。
-      - 使用 FIFA 官方 logo、赛事视觉资产或未经授权的官方品牌包装。
+      - 将 FIFA 官方 logo、赛事视觉资产或未经授权的官方品牌包装作为页面主品牌。
+      - 声称官方招贴画、赛事名称或大力神杯风格图标代表本 demo 获得官方授权。
       - 要求用户输入国家、球队、偏好或个人信息。
       - 保存用户历史猜测记录、账号信息或行为分析数据。
       - 精确复刻官方 Annex C 中所有第三名晋级组合对应的淘汰赛配对。
+      - 自动判断或修正外部页面中尚未同步到本地快照的最新赛果。
       - 解释被选中国家夺冠的真实原因。
 
   actors:
@@ -79,6 +96,11 @@ aifr_spec:
     group_stage_fixture_order: 四队小组的对战顺序：1v2、3v4、1v3、4v2、4v1、2v3。
     predicted_score: 系统为一场比赛生成的娱乐性质比分。
     simulated_standings: 根据预测比分计算出的积分、净胜球和进球数排序。
+    synced_match_result: 已完赛赛事的本地同步快照，包含对阵双方、真实比分、北京时间和来源。
+    result_source_label: 标识一场比赛结果来自“同步真实赛果”还是“模拟预测”的展示标签。
+    team_flag_icon: 参赛队对应的国旗小图标，用于冠军、积分榜和比赛对阵中的队名展示。
+    transparent_tournament_poster: 标题背景中低透明度展示的 2026 世界杯招贴画装饰层。
+    project_trophy_icon: 浏览器图标和页面品牌标记使用的大力神杯风格图标。
     knockout_bracket: 从模拟出线队伍生成的娱乐性质淘汰赛路径。
     winner_guess: 系统随机选中的 2026 世界杯冠军猜测国家或地区。
     entertainment_disclaimer: 说明结果仅供娱乐、不保证准确、不构成投注建议的文案。
@@ -96,6 +118,18 @@ aifr_spec:
       url: https://en.wikipedia.org/wiki/2026_FIFA_World_Cup
       retrieved_at: "2026-06-23"
       note: 该页面说明 12 个小组、48 队赛制、每组对战顺序和淘汰赛阶段。
+    - name: 2026 FIFA World Cup completed match results snapshot
+      url: https://en.wikipedia.org/wiki/2026_FIFA_World_Cup
+      retrieved_at: "2026-06-23"
+      note: 用于内置同步快照；页面统计显示截至 2026-06-21 已有 40 场比赛，外部页面可能继续变化。
+    - name: Official FIFA World Cup 2026 Tournament Poster
+      url: https://store.fifa.com/en-ca/products/2026-world-cup-event-poster
+      retrieved_at: "2026-06-23"
+      note: 用于标题背景低透明度装饰；不得暗示本 demo 获得 FIFA 官方授权。
+    - name: FlagCDN public flag icons
+      url: https://flagcdn.com/
+      retrieved_at: "2026-06-23"
+      note: 用于参赛队国旗小图标展示；页面仅保存国家/地区代码映射，运行时加载图标资源。
 
   participant_teams:
     source_date: "2026-06-23"
@@ -205,6 +239,38 @@ aifr_spec:
       description: 页面必须展示从小组赛到冠军的完整娱乐模拟过程。
       invariant: page shows group_scores, standings, knockout_bracket, and champion
 
+    - id: RULE-013
+      description: 页面必须在“重新模拟”按钮左侧提供“同步赛况”按钮。
+      invariant: sync_match_results action appears before simulate_tournament action
+
+    - id: RULE-014
+      description: 同步赛况必须把已完赛真实结果补充到对应小组赛场次，并覆盖该场原本的预测比分。
+      invariant: synced_match_result replaces predicted_score for matching group fixture
+
+    - id: RULE-015
+      description: 同步的已完赛场次必须显示北京时间、真实比分和真实赛果标识。
+      invariant: synced fixture shows played_at_beijing, final_score, and result_source_label = synced-real
+
+    - id: RULE-016
+      description: 同步真实赛果必须参与积分榜、32 强资格和淘汰赛路径计算，未完赛场次继续使用预测比分。
+      invariant: standings and knockout_bracket use synced_match_result plus predicted_score for future fixtures
+
+    - id: RULE-017
+      description: 淘汰赛 32 强首轮必须按公开赛程槽位填充小组排名和最佳第三名，后续轮次按胜者推进。
+      invariant: round_of_32_slots use group placement seeds and winners advance by official match numbers
+
+    - id: RULE-018
+      description: 每支参赛队必须有国旗图标映射，并在冠军、积分榜和比赛对阵展示中使用。
+      invariant: each participant_team has team_flag_icon and visible team renderers include team_flag_icon
+
+    - id: RULE-019
+      description: 标题背景必须低透明度展示 2026 世界杯招贴画，且不能遮挡标题、说明文案或按钮。
+      invariant: title_background includes transparent_tournament_poster and foreground_text remains readable
+
+    - id: RULE-020
+      description: 项目图标和页面品牌标记必须使用大力神杯风格图标。
+      invariant: project_icon = project_trophy_icon and brand_mark = project_trophy_icon
+
   scenarios:
     - id: SCN-001
       name: 用户点击后获得参赛队范围内的冠军猜测
@@ -259,6 +325,32 @@ aifr_spec:
         - 页面展示 32 强后的淘汰赛路径
         - 页面展示最终冠军
 
+    - id: SCN-006
+      name: 用户同步已完赛赛况后继续模拟未来赛程
+      given:
+        - world_cup_2026_team_pool contains the documented 48 participant teams
+        - synced_match_results contains completed group-stage fixtures from the local snapshot
+      when:
+        - 用户点击同步赛况
+      then:
+        - 页面在对应小组赛场次展示同步真实比分
+        - 同步真实比分的场次显示北京时间和“同步真实赛果”标识
+        - 未完赛场次显示“模拟预测”标识
+        - 小组积分榜基于同步真实比分和未完赛预测比分共同计算
+        - 淘汰赛对阵和最终冠军基于更新后的积分榜继续模拟
+
+    - id: SCN-007
+      name: 用户打开页面时看到参赛队国旗和世界杯视觉装饰
+      given:
+        - world_cup_2026_team_pool contains the documented 48 participant teams
+      when:
+        - 用户打开冠军猜测网页
+      then:
+        - 冠军展示、积分榜和比赛对阵中的参赛队名称旁展示对应国旗图标
+        - “2026 世界杯冠军猜想”标题背景低透明度展示本届世界杯招贴画
+        - 浏览器图标和页面品牌标记展示大力神杯风格图标
+        - 标题、说明文案和按钮保持可读且不被招贴画遮挡
+
   acceptance_criteria:
     - id: AC-001
       text: 需求文档必须按大洲列出 48 支 2026 世界杯参赛队。
@@ -296,9 +388,9 @@ aifr_spec:
         - RULE-006
 
     - id: AC-007
-      text: V1 运行时不得调用真实赛程、实时比分、赔率、排名、新闻或历史比赛外部数据源。
+      text: 运行时不得联网调用真实赛程、实时比分、赔率、排名、新闻或历史比赛外部数据源；同步赛况使用本地内置快照。
       verifies:
-        - RULE-002
+        - RULE-014
 
     - id: AC-008
       text: 系统必须为 12 个小组生成总计 72 场小组赛预测比分。
@@ -318,13 +410,52 @@ aifr_spec:
         - RULE-011
         - RULE-012
 
+    - id: AC-011
+      text: 页面必须在“重新模拟”按钮左侧展示“同步赛况”按钮。
+      verifies:
+        - RULE-013
+
+    - id: AC-012
+      text: 点击同步赛况后，已完赛场次必须显示真实比分、北京时间和同步真实赛果标识，未完赛场次必须显示模拟预测标识。
+      verifies:
+        - RULE-014
+        - RULE-015
+
+    - id: AC-013
+      text: 同步真实赛果必须改变积分榜，并通过 32 强资格和淘汰赛路径影响后续模拟。
+      verifies:
+        - RULE-016
+        - RULE-017
+
+    - id: AC-014
+      text: 48 支参赛队必须都有国旗图标映射，且冠军、积分榜、比赛对阵展示队名时必须显示对应国旗图标。
+      verifies:
+        - RULE-018
+
+    - id: AC-015
+      text: 标题区域必须把 2026 世界杯招贴画作为低透明背景展示，前景标题、说明和操作按钮不得被遮挡。
+      verifies:
+        - RULE-019
+
+    - id: AC-016
+      text: 项目 favicon 和页面品牌标记必须使用大力神杯风格图标。
+      verifies:
+        - RULE-020
+
   interfaces:
     ui:
       - surface: world_cup_winner_guess_page
         actions:
           - guess_winner
+          - sync_match_results
         output_fields:
           - winner_guess
+          - synced_match_result_count
+          - result_source_label
+          - played_at_beijing
+          - team_flag_icon
+          - transparent_tournament_poster
+          - project_trophy_icon
           - configuration_error
           - entertainment_disclaimer
     configuration:
@@ -340,35 +471,48 @@ aifr_spec:
       - service: WinnerGuessGenerator
       - service: TournamentSimulator
       - module: GroupStageFixtureOrder
+      - module: SyncedMatchResultSnapshot
+      - module: OfficialKnockoutSlotMap
       - module: WorldCup2026TeamPool
+      - module: TeamFlagIconMap
+      - module: HeroPosterBackground
+      - module: TrophyProjectIcon
       - method_hint: generateWinnerGuess
       - method_hint: simulateTournament
+      - method_hint: syncCompletedMatchResults
     expected_tests:
       - WorldCupWinnerGuessPageTest
       - WinnerGuessGeneratorTest
       - TournamentSimulatorTest
+      - SyncedMatchResultSnapshotTest
+      - OfficialKnockoutSlotMapTest
       - WorldCup2026TeamPoolTest
+      - TeamFlagIconMapTest
+      - HeroPosterBackgroundVisualTest
+      - TrophyProjectIconVisualTest
 
   risk:
     level: low
     reasons:
       - demo 版本不处理支付、个人敏感信息或外部系统写入。
       - 输出明确限定为娱乐性质，不保证准确且不构成投注建议。
-      - 不使用官方品牌资产，降低误导为官方服务的风险。
+      - 官方招贴画仅作为低透明背景装饰，页面不得暗示官方授权或官方预测。
 
   non_functional:
     performance:
       - 点击猜冠军后，页面应在 500ms 内展示结果或配置错误。
     reliability:
       - 参赛队候选池配置无效时不得展示上一次或部分生成的结果。
+      - 同步赛况失败或快照为空时，页面必须保留可用的纯模拟结果并清晰说明未同步。
     security:
       - 参赛队名称应作为普通文本展示，避免脚本注入。
     accessibility:
       - 猜冠军按钮和结果区域应有可理解的标签。
     compliance:
-      - 页面不得暗示投注建议、胜负保证、官方预测或真实数据分析结论。
+      - 页面不得暗示投注建议、胜负保证、官方预测、官方授权或真实数据分析结论。
 
   open_questions:
     - 如果官方参赛队名称展示方式变化，是否需要同步更新本需求文档中的 participant_teams？
     - 是否需要在后续版本中精确实现官方 Annex C 的第三名晋级组合配对？
-    - 是否需要把真实比赛日期、城市和球场也展示在小组赛对战顺序中？
+    - 是否需要在后续版本接入 FIFA 官方 API 或其他授权数据源，以替代本地同步快照？
+    - 是否需要把城市、球场、裁判、观众人数等更多真实赛况字段也同步展示？

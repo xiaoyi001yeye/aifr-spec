@@ -16,6 +16,8 @@ REQUIRED_FILES = [
     "references/schema.zh-CN.md",
     "references/naming.md",
     "references/output-format.md",
+    "references/update-ledger.md",
+    "references/source-snapshot.md",
     "references/examples.md",
     "references/quality-checklist.md",
     "references/traceability.md",
@@ -201,6 +203,188 @@ def nested_scalar(text: str, section: str, field: str) -> str | None:
     return value.group(1).strip().strip("\"'")
 
 
+def relative_posix(root: Path, path: Path) -> str:
+    return path.resolve().relative_to(root.resolve()).as_posix()
+
+
+def discover_spec_files(root: Path) -> list[Path]:
+    direct_root = root / "aifr" / "requirements" / "items"
+    if direct_root.is_dir():
+        return sorted(direct_root.glob("**/spec.aifr.yaml"))
+    return sorted(root.glob("**/aifr/requirements/items/**/spec.aifr.yaml"))
+
+
+def project_root_for_spec(spec_path: Path) -> Path:
+    parts = spec_path.resolve().parts
+    for index in range(len(parts) - 1, -1, -1):
+        if parts[index] == "aifr":
+            return Path(*parts[:index])
+    return spec_path.parent
+
+
+def collect_list_ids_unique(ids: list[str], label: str) -> list[str]:
+    errors: list[str] = []
+    seen: set[str] = set()
+    for item_id in ids:
+        if item_id in seen:
+            errors.append(f"duplicate {label} id: {item_id}")
+        seen.add(item_id)
+    return errors
+
+
+def parse_index_entries(index_path: Path) -> list[dict[str, str]]:
+    if not index_path.is_file():
+        return []
+    entries: list[dict[str, str]] = []
+    current: dict[str, str] | None = None
+    for line in index_path.read_text(encoding="utf-8").splitlines():
+        start = re.match(r"^\s*-\s+id:\s*(.+?)\s*$", line)
+        if start:
+            if current:
+                entries.append(current)
+            current = {"id": start.group(1).strip().strip("\"'")}
+            continue
+        if current is None:
+            continue
+        field = re.match(r"^\s+([A-Za-z_][A-Za-z0-9_]*):\s*(.+?)\s*$", line)
+        if field:
+            current[field.group(1)] = field.group(2).strip().strip("\"'")
+    if current:
+        entries.append(current)
+    return entries
+
+
+def validate_update_ledger(project_root: Path, spec_path: Path, body: str) -> list[str]:
+    errors: list[str] = []
+    previous_version = nested_scalar(body, "versioning", "previous_version")
+    current_version = scalar_top_level_value(body, "version")
+    spec_id = scalar_top_level_value(body, "id")
+    change_type = nested_scalar(body, "versioning", "change_type")
+    if not previous_version or previous_version in {"null", "None"} or not current_version:
+        return errors
+
+    ledger_path = spec_path.parent / "changes" / f"v{current_version}.aifr-update.yaml"
+    if not ledger_path.is_file():
+        errors.append(f"{relative_posix(project_root, spec_path)}: missing update ledger: {relative_posix(project_root, ledger_path)}")
+        return errors
+
+    ledger = ledger_path.read_text(encoding="utf-8")
+    ledger_id = nested_scalar(ledger, "version_update", "requirement_id")
+    from_version = nested_scalar(ledger, "version_update", "from_version")
+    to_version = nested_scalar(ledger, "version_update", "to_version")
+    recommended_bump = nested_scalar(ledger, "version_update", "recommended_bump")
+    for section in ("version_update", "change_set", "impact_analysis"):
+        if not re.search(rf"^{section}:\s*$", ledger, re.MULTILINE):
+            errors.append(f"{relative_posix(project_root, ledger_path)}: missing required ledger section: {section}")
+    if ledger_id != spec_id:
+        errors.append(f"{relative_posix(project_root, ledger_path)}: version_update.requirement_id must equal spec id {spec_id}")
+    if from_version != previous_version:
+        errors.append(f"{relative_posix(project_root, ledger_path)}: version_update.from_version must equal spec previous_version {previous_version}")
+    if to_version != current_version:
+        errors.append(f"{relative_posix(project_root, ledger_path)}: version_update.to_version must equal spec version {current_version}")
+    if recommended_bump and change_type and recommended_bump != change_type and recommended_bump != "needs_review":
+        errors.append(
+            f"{relative_posix(project_root, ledger_path)}: recommended_bump must equal versioning.change_type {change_type} or needs_review"
+        )
+    return errors
+
+
+def validate_strict_project(project_root: Path, spec_paths: list[Path]) -> list[str]:
+    errors: list[str] = []
+    records: dict[str, dict[str, str]] = {}
+
+    for spec_path in spec_paths:
+        if spec_path is None or not spec_path.is_file():
+            continue
+        body = unwrap_aifr_spec(spec_path.read_text(encoding="utf-8"))
+        spec_id = scalar_top_level_value(body, "id")
+        version = scalar_top_level_value(body, "version")
+        title = scalar_top_level_value(body, "title")
+        status = scalar_top_level_value(body, "status")
+        primary_domain = nested_scalar(body, "identity", "primary_domain")
+        domain_path = nested_scalar(body, "identity", "domain_path")
+        frozen_slug = nested_scalar(body, "identity", "frozen_slug")
+        canonical_path = nested_scalar(body, "identity", "canonical_path")
+        relative_path = relative_posix(project_root, spec_path)
+
+        if spec_id in records:
+            errors.append(f"duplicate requirement id {spec_id}: {records[spec_id]['path']} and {relative_path}")
+        if spec_id:
+            records[spec_id] = {
+                "id": spec_id,
+                "version": version or "",
+                "title": title or "",
+                "status": status or "",
+                "domain": primary_domain or "",
+                "domain_path": domain_path or "",
+                "path": relative_path,
+            }
+
+        parent_name = spec_path.parent.name
+        if spec_id and not parent_name.startswith(f"{spec_id}--"):
+            errors.append(f"{relative_path}: directory id must match aifr_spec.id {spec_id}")
+        if frozen_slug and spec_id and parent_name != f"{spec_id}--{frozen_slug}":
+            errors.append(f"{relative_path}: directory slug must match identity.frozen_slug")
+        actual_domain_path = spec_path.parent.parent.name
+        if domain_path and domain_path != actual_domain_path:
+            errors.append(f"{relative_path}: identity.domain_path must match path domain {actual_domain_path}")
+        if canonical_path and canonical_path != relative_path:
+            errors.append(f"{relative_path}: identity.canonical_path must match actual path")
+        if primary_domain and spec_id:
+            id_domain = spec_id.split("-")[1]
+            if primary_domain != id_domain:
+                errors.append(f"{relative_path}: identity.primary_domain must match id domain {id_domain}")
+
+        revision_block = re.search(
+            r"^revision_history:\n(?P<body>.*?)(?=^[A-Za-z_][A-Za-z0-9_]*:|\Z)",
+            body,
+            re.MULTILINE | re.DOTALL,
+        )
+        if version and (not revision_block or (f'version: "{version}"' not in revision_block.group("body") and f"version: {version}" not in revision_block.group("body"))):
+            errors.append(f"{relative_path}: revision_history must include current version {version}")
+
+        errors.extend(f"{relative_path}: {error}" for error in collect_list_ids_unique(collect_ids(body, "rules"), "rule"))
+        errors.extend(f"{relative_path}: {error}" for error in collect_list_ids_unique(collect_ids(body, "scenarios"), "scenario"))
+        errors.extend(
+            f"{relative_path}: {error}" for error in collect_list_ids_unique(collect_ids(body, "acceptance_criteria"), "acceptance criterion")
+        )
+        errors.extend(validate_update_ledger(project_root, spec_path, body))
+
+    index_path = project_root / "aifr" / "indexes" / "requirements.aifr-index.yaml"
+    index_entries = parse_index_entries(index_path)
+    for entry in index_entries:
+        spec = records.get(entry.get("id", ""))
+        entry_label = f"{relative_posix(project_root, index_path)} entry {entry.get('id', '<missing id>')}"
+        if not spec:
+            errors.append(f"{entry_label}: id has no matching spec")
+            continue
+        comparisons = {
+            "title": spec["title"],
+            "version": spec["version"],
+            "status": spec["status"],
+            "domain": spec["domain"],
+            "path": spec["path"],
+        }
+        for field, expected in comparisons.items():
+            if entry.get(field, "") != expected:
+                errors.append(f"{entry_label}: {field} must be {expected!r}, got {entry.get(field, '')!r}")
+    return errors
+
+
+def validate_strict_repository(root: Path, target_spec: Path | None = None) -> list[str]:
+    if target_spec:
+        return validate_strict_project(project_root_for_spec(target_spec), [target_spec])
+
+    grouped: dict[Path, list[Path]] = {}
+    for spec_path in discover_spec_files(root):
+        grouped.setdefault(project_root_for_spec(spec_path), []).append(spec_path)
+
+    errors: list[str] = []
+    for project_root, spec_paths in sorted(grouped.items(), key=lambda item: item[0].as_posix()):
+        errors.extend(validate_strict_project(project_root, spec_paths))
+    return errors
+
+
 def validate_enum(
     text: str,
     field: str,
@@ -308,6 +492,11 @@ def main() -> int:
         "--spec",
         help="Optional path to an AIFR YAML spec file to quality-check.",
     )
+    parser.add_argument(
+        "--strict",
+        action="store_true",
+        help="Run cross-file consistency checks for specs, indexes, ids, paths, and update ledgers.",
+    )
     args = parser.parse_args()
 
     root = Path(args.root).resolve()
@@ -325,6 +514,11 @@ def main() -> int:
             spec_errors, spec_warnings = validate_spec_file(spec_path)
             errors.extend(f"{spec_path.name}: {error}" for error in spec_errors)
             warnings.extend(f"{spec_path.name}: {warning}" for warning in spec_warnings)
+    else:
+        spec_path = None
+
+    if args.strict:
+        errors.extend(validate_strict_repository(root, spec_path))
 
     if errors:
         for error in errors:
@@ -335,8 +529,10 @@ def main() -> int:
 
     for warning in warnings:
         print(f"WARNING: {warning}", file=sys.stderr)
-    print(f"OK: AIFR smoke check passed at {root}")
-    print("NOTE: This is not complete schema validation; apply references/quality-checklist.md manually.")
+    check_name = "strict consistency check" if args.strict else "smoke check"
+    print(f"OK: AIFR {check_name} passed at {root}")
+    if not args.strict:
+        print("NOTE: This is not complete schema validation; apply references/quality-checklist.md manually.")
     return 0
 
 

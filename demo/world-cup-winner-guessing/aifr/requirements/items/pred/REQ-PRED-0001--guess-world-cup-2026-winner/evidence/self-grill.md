@@ -6,7 +6,7 @@ Mode: self-grill
 
 Round limit: 50
 
-Rounds used: 29
+Rounds used: 40
 
 ## Rounds
 
@@ -242,6 +242,94 @@ Answer: No blocking branch remains for a V1 entertainment simulator. Exact venue
 
 Result: Done.
 
+### Round 30
+
+Question: Does the new sync request change the previous "no real data" boundary?
+
+Answer: Yes, but only narrowly. The feature should not perform runtime live-data fetching in the single-file demo; it can use an embedded completed-results snapshot as the synced source.
+
+Result: Decision.
+
+### Round 31
+
+Question: Where should the sync action appear?
+
+Answer: Place a "同步赛况" action immediately to the left of "重新模拟", matching the user's requested position and preserving the existing primary simulation action.
+
+Result: Decision.
+
+### Round 32
+
+Question: What does synchronization do to a completed match already displayed as a prediction?
+
+Answer: It replaces the corresponding fixture's predicted score with the synced real final score, keeping the fixture in the same group-stage slot.
+
+Result: Decision.
+
+### Round 33
+
+Question: How should users tell real results apart from predictions?
+
+Answer: Each match card should display a source label: "同步真实赛果" for completed synced matches and "模拟预测" for remaining simulated matches. Real scores should also use distinct styling.
+
+Result: Decision.
+
+### Round 34
+
+Question: What key data must a synced match show?
+
+Answer: At minimum: both teams, final score, result source label, and match time converted to Beijing time.
+
+Result: Decision.
+
+### Round 35
+
+Question: Should synced real results affect only display, or also future simulation?
+
+Answer: They must affect computation. Synced scores should feed the group standings, which determine qualifiers, knockout slot filling, and the final simulated champion.
+
+Result: Decision.
+
+### Round 36
+
+Question: What happens to future or unsynced fixtures after synchronization?
+
+Answer: They remain simulated predictions and are explicitly labeled as such. Re-simulating after sync keeps the real results fixed and re-randomizes future predictions.
+
+Result: Decision.
+
+### Round 37
+
+Question: How should knockout placement work after synced group results change standings?
+
+Answer: Use the public round-of-32 seed slots from the schedule: group winners, runners-up, and best third-place candidates fill the bracket, then winners advance by official match numbers. Exact Annex C third-place combination selection remains deferred.
+
+Result: Decision with deferral.
+
+### Round 38
+
+Question: Should the sync button fetch Wikipedia at runtime?
+
+Answer: No. The local demo should remain a deterministic single-file app; the sync button applies an embedded snapshot retrieved on 2026-06-23.
+
+Result: Decision.
+
+### Round 39
+
+Question: Is there a data freshness risk?
+
+Answer: Yes. The snapshot can lag the current tournament. The requirement should show retrieval date/source and leave live authorized API integration as a future open question.
+
+Result: Assumption and open question.
+
+### Round 40
+
+Question: Are blocking branches unresolved for this sync enhancement?
+
+Answer: No blocking branch remains for a local snapshot-based sync implementation. Live official data integration, full Annex C mapping, and richer match metadata are deferred.
+
+Result: Done.
+
 ## Summary
 
 Resolved decisions:
@@ -251,18 +339,24 @@ Resolved decisions:
 - No required user input.
 - The requirement embeds the 48 participating teams for the 2026 FIFA World Cup.
 - The page simulates group-stage scores, standings, qualifiers, knockout rounds, and champion from the embedded 48-team field.
+- The page can synchronize a local completed-results snapshot and keep those real results fixed while simulating future fixtures.
+- Synced matches show Beijing time, final score, and a "同步真实赛果" label; predicted matches show a "模拟预测" label.
+- Synced real results affect standings, qualifiers, knockout slots, and the eventual simulated champion.
 - Random result may vary between clicks.
 - Required entertainment and no-betting disclaimer.
 - Missing, incomplete, or duplicated participant pool blocks guessing.
+- The sync snapshot is embedded in the demo and is not fetched from the network at runtime.
 
 Assumptions:
 
 - The project should follow the existing demo style and focus on AIFR requirement documentation rather than implementation code.
 - A simple page is the right surface for the demo.
+- Wikipedia is acceptable as the user-provided source for the local snapshot, but it may lag the live tournament state.
 
 Open questions:
 
 - Should a future version display the full candidate pool to users?
 - Should future versions update the embedded team list automatically from an official source?
 - Should future versions implement official Annex C third-place pairing combinations exactly?
-- Should future versions show real dates, cities, and stadiums for each group-stage match?
+- Should future versions connect to an authorized live data source instead of an embedded snapshot?
+- Should future versions show real cities, stadiums, referees, attendance, and scorer details for each synced match?

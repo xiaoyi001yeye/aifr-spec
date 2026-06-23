@@ -1,0 +1,68 @@
+version_update:
+  requirement_id: REQ-PRED-0001
+  from_version: "1.2.0"
+  to_version: "1.3.0"
+  recommended_bump: minor
+  breaking_change: false
+  reason: 新增参赛队国旗图标、标题招贴画背景和大力神杯风格项目图标，不移除既有模拟与同步赛况行为。
+
+change_set:
+  added_rules:
+    - RULE-018
+    - RULE-019
+    - RULE-020
+  modified_rules: []
+  removed_rules: []
+
+  added_scenarios:
+    - SCN-007
+  modified_scenarios: []
+  removed_scenarios: []
+
+  added_acceptance_criteria:
+    - AC-014
+    - AC-015
+    - AC-016
+  modified_acceptance_criteria: []
+  removed_acceptance_criteria: []
+
+  textual_changes:
+    clarified_scope:
+      - 新增每个参赛队展示国旗图标的视觉要求。
+      - 新增标题背景低透明度展示 2026 世界杯招贴画的视觉要求。
+      - 新增项目 favicon 和页面品牌标记使用大力神杯风格图标的视觉要求。
+    terminology_changes:
+      - 新增 team_flag_icon、transparent_tournament_poster 和 project_trophy_icon 术语。
+
+  semantic_summary:
+    - 页面在冠军、积分榜和比赛对阵展示参赛队国旗图标。
+    - 标题区域低透明度展示 2026 世界杯官方招贴画，前景内容保持可读。
+    - 项目图标和页面品牌标记更新为大力神杯风格图标。
+
+impact_analysis:
+  requirement_impact:
+    related_requirements: []
+
+  code_impact:
+    level: low
+    reason: 单文件前端新增静态国旗代码映射、标题背景图片样式和 SVG 图标，不改变赛事模拟核心逻辑。
+    code_search_hints:
+      - TeamFlagIconMap
+      - HeroPosterBackground
+      - TrophyProjectIcon
+      - teamWithFlag
+
+  test_impact:
+    level: low
+    reason: 需要渲染层验证国旗、标题背景和 favicon/品牌标记显示，不需要新增后端或数据同步测试。
+    recommended_tests:
+      - shouldRenderFlagIconForEveryParticipantTeam
+      - shouldRenderTransparentTournamentPosterBehindHeroTitle
+      - shouldUseTrophyIconForFaviconAndBrandMark
+      - shouldKeepHeroTitleReadableOverPoster
+
+  review_impact:
+    recommended_reviewers:
+      - product
+      - engineering
+      - qa

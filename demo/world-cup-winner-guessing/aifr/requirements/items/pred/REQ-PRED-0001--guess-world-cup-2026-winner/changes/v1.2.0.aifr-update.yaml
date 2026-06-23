@@ -1,0 +1,73 @@
+version_update:
+  requirement_id: REQ-PRED-0001
+  from_version: "1.1.0"
+  to_version: "1.2.0"
+  recommended_bump: minor
+  breaking_change: false
+  reason: 新增同步真实赛果展示和后续赛程影响，不移除既有纯模拟行为。
+
+change_set:
+  added_rules:
+    - RULE-013
+    - RULE-014
+    - RULE-015
+    - RULE-016
+    - RULE-017
+  modified_rules: []
+  removed_rules: []
+
+  added_scenarios:
+    - SCN-006
+  modified_scenarios: []
+  removed_scenarios: []
+
+  added_acceptance_criteria:
+    - AC-011
+    - AC-012
+    - AC-013
+  modified_acceptance_criteria:
+    - AC-007
+  removed_acceptance_criteria: []
+
+  textual_changes:
+    clarified_scope:
+      - 将“不得接入真实赛程/比分”澄清为“不得运行时联网抓取；允许本地同步快照”。
+    terminology_changes:
+      - 新增 synced_match_result 和 result_source_label 术语。
+
+  semantic_summary:
+    - 页面新增同步赛况按钮，并位于重新模拟按钮左侧。
+    - 已完赛真实结果覆盖对应小组赛场次的预测比分。
+    - 同步真实结果展示北京时间、真实比分和来源标识。
+    - 同步真实结果参与积分榜、32 强资格、淘汰赛路径和冠军模拟。
+    - 未完赛场次继续使用模拟预测并保持娱乐免责声明。
+
+impact_analysis:
+  requirement_impact:
+    related_requirements: []
+
+  code_impact:
+    level: medium
+    reason: 前端需要新增同步状态、真实结果快照、来源标识、积分重算和官方 32 强槽位填充。
+    code_search_hints:
+      - WorldCupWinnerGuessPage
+      - TournamentSimulator
+      - SyncedMatchResultSnapshot
+      - OfficialKnockoutSlotMap
+      - syncCompletedMatchResults
+
+  test_impact:
+    level: medium
+    reason: 需要覆盖同步按钮、真实赛果覆盖、预测结果区分、积分影响和重新模拟后真实结果保持固定。
+    recommended_tests:
+      - shouldRenderSyncButtonBeforeSimulateButton
+      - shouldMarkSyncedMatchesAsRealResults
+      - shouldKeepFutureMatchesPredictedAfterSync
+      - shouldUseSyncedResultsInStandingsAndKnockouts
+      - shouldKeepSyncedResultsFixedWhenResimulating
+
+  review_impact:
+    recommended_reviewers:
+      - product
+      - engineering
+      - qa

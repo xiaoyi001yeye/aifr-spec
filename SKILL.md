@@ -31,8 +31,18 @@ Read only the relevant references before acting:
 | Review spec quality | `references/schema.md`, `references/quality-checklist.md`, `references/naming.md`, `references/output-format.md`, `references/traceability.md` |
 | Add source, decision, test, or implementation mappings | `references/traceability.md` |
 | Add code entry comments aligned to requirement ids | `references/traceability.md`, `references/naming.md` |
+| Update a requirement semantic version | `references/output-format.md`, `references/update-ledger.md` |
+| Use external facts as requirement or implementation truth | `references/source-snapshot.md` |
 
 When `references/schema.md` changes, update `references/schema.zh-CN.md` in the same change.
+
+## Skill Precedence
+
+When this AIFR skill and a generic skill both apply, use the narrower AIFR workflow for requirement work.
+
+- If the user explicitly asks for self-grill, run AIFR self-grill even if a generic grilling skill says to ask one question at a time.
+- If the user ambiguously says "grill" without self-grill or interactive mode, ask for the mode.
+- Use generic skills as reference vocabulary only when they do not override AIFR completion criteria.
 
 ## Core Workflows
 
@@ -74,9 +84,17 @@ Done only when the YAML includes every required field from `references/schema.md
 
 Read the old requirement and requested change. Do not overwrite history as if it never existed. Generate the updated requirement plus `version_update`, `change_set`, and `impact_analysis`.
 
-Use `references/output-format.md` as the single source of truth for bump rules and change report structure. Use `from_version: unknown` when old version input is unavailable. Keep wording changes in `change_set.textual_changes`; use `change_set.modified_*` only for business semantic changes.
+Use `references/output-format.md` as the single source of truth for bump rules and change report structure. Use `references/update-ledger.md` for the required ledger artifact. Use `from_version: unknown` when old version input is unavailable. Keep wording changes in `change_set.textual_changes`; use `change_set.modified_*` only for business semantic changes.
 
-Done only when the old and new semantics have been compared field-by-field, the recommended bump is justified by `references/output-format.md`, textual changes are separated from semantic changes, and code/test/review impact is explicit.
+Done only when the old and new semantics have been compared field-by-field, the recommended bump is justified by `references/output-format.md`, textual changes are separated from semantic changes, code/test/review impact is explicit, a matching `changes/v<version>.aifr-update.yaml` ledger exists for semantic updates, and the strict gate passes or every strict failure is reported.
+
+### Snapshot External Facts
+
+Use this when a requirement or implementation treats external facts as truth, such as synced schedules, imported results, prices, policies, public registries, or semi-structured webpage data.
+
+Read `references/source-snapshot.md`. Fetch or inspect the source, record provenance, normalize records with stable keys, normalize time zones explicitly, emit or update a local snapshot artifact, and report unresolved mappings as blocking gaps instead of guessing.
+
+Done only when the snapshot can be regenerated, every normalized record has provenance, timezone handling is explicit, a deterministic diff exists for updates, and implementation consumes the snapshot artifact or generated data derived from it.
 
 ### Compare Versions
 
@@ -134,6 +152,7 @@ Run before considering spec updates complete:
 ```bash
 python3 scripts/validate_aifr_spec.py .
 python3 scripts/validate_aifr_spec.py . --spec path/to/spec.yaml
+python3 scripts/validate_aifr_spec.py . --strict
 ```
 
-The validator is a smoke check for repository structure and lightweight AIFR YAML issues. It does not replace the required references, manual quality checklist, semantic comparison, or review judgment.
+The default validator is a smoke check for repository structure and lightweight AIFR YAML issues. The `--strict` gate checks cross-file consistency for ids, paths, indexes, revision history, duplicate local ids, and update ledgers. Neither mode replaces the required references, manual quality checklist, semantic comparison, or review judgment.
