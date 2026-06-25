@@ -398,6 +398,7 @@ aifr/indexes/
   requirements.aifr-index.yaml
   domains.aifr-index.yaml
   baselines.aifr-index.yaml
+  reverse-terms.aifr-index.yaml
 ```
 
 Example:
@@ -419,12 +420,31 @@ requirements:
     path: aifr/requirements/items/order/REQ-ORDER-0007--auto-cancel-unpaid-order/spec.aifr.yaml
 ```
 
+Reverse index example:
+
+```yaml
+reverse_index:
+  terms:
+    - term: 离班学生
+      affects:
+        - requirement_id: REQ-CLASS-0003
+          path: aifr/requirements/items/class/REQ-CLASS-0003--class-membership/spec.aifr.yaml
+          fields:
+            - rules
+        - requirement_id: REQ-PLAN-0002
+          path: aifr/requirements/items/plan/REQ-PLAN-0002--student-learning-plan/spec.aifr.yaml
+          fields:
+            - preconditions
+            - scenarios
+```
+
 Rules:
 
 - Indexes may be regenerated.
 - Indexes are not authoritative requirement sources.
 - Index information must be reconstructable from `spec.aifr.yaml`.
 - AI may read indexes first to find candidates, then open `spec.aifr.yaml`.
+- Reverse indexes help audit cross-requirement boundary terms; they must be regenerated from specs or treated as hints until confirmed against `spec.aifr.yaml`.
 
 ## Status Changes
 

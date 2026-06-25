@@ -37,13 +37,16 @@ Keep source references close to the requirement or rule they justify.
 
 ## Test Mapping
 
-Use `trace.expected_tests` to name expected automated tests:
+Use `trace.expected_tests.planned` to name expected automated tests, and `trace.expected_tests.implemented` to name tests found in the repository:
 
 ```yaml
 trace:
   expected_tests:
-    - RefundServiceTest
-    - RefundControllerTest
+    planned:
+      - RefundServiceTest
+      - RefundControllerTest
+    implemented:
+      - tests/payment/RefundServiceTest.java
 ```
 
 Test mapping expectations:
@@ -52,6 +55,38 @@ Test mapping expectations:
 - API behavior should have controller, handler, or integration tests.
 - Risky financial or audit behavior should include boundary and regression tests.
 - Each `acceptance_criteria[].verifies` target should be covered by at least one expected test.
+- Planned tests are recommendations or gaps; implemented tests must correspond to files, classes, or cases that actually exist.
+- Do not move a test from `planned` to `implemented` until repository inspection confirms it exists.
+
+## Implementation Audit Mapping
+
+Use `implementation` to record current implementation state, and keep it distinct from requirement review `status`.
+
+```yaml
+implementation:
+  status: partial
+  updated_at: "2026-06-26"
+  notes: []
+  rule_coverage:
+    - rule_id: RULE-001
+      status: verified
+      code:
+        - RefundService.calculateRefundAmount
+      tests:
+        planned:
+          - RefundControllerTest
+        implemented:
+          - RefundServiceTest.shouldCapRefundAtPaidAmount
+```
+
+Implementation audit rules:
+
+- `not_started` means no matching implementation was found.
+- `partial` means at least one code target or test exists, but rule or acceptance coverage is incomplete.
+- `implemented` means code coverage appears complete, but verification has not proved it yet.
+- `verified` means relevant verification commands passed after code and tests were inspected.
+- Per-rule and per-acceptance coverage may be updated by automation; do not use prose-only notes as the sole coverage record.
+- If a requirement has no implementation yet, leave `trace.expected_tests.implemented` empty and keep missing tests under `planned`.
 
 ## Code Mapping
 
@@ -65,6 +100,46 @@ trace:
 ```
 
 Code mapping should be specific enough for an implementer to find the change area without forcing an exact file path too early.
+
+When an interface reuses an existing endpoint, trace the second authorization check explicitly:
+
+```yaml
+interfaces:
+  apis:
+    - method: GET
+      path: /vocabularies/{id}
+      reuse_existing_endpoint: true
+      authorization_source: VocabularyAccessService.assertReadable
+```
+
+Reuse expectations:
+
+- `reuse_existing_endpoint: true` means the requirement relies on an existing API rather than adding a new one.
+- `authorization_source` names the existing service, policy, guard, or API that rechecks access at request time.
+- Resource-entry requirements should not rely only on the containing feed, message, or page authorization when the target resource has its own access rule.
+
+## Reverse Indexes
+
+Use reverse indexes to find cross-requirement effects for shared business terms and boundary states.
+
+```yaml
+reverse_index:
+  terms:
+    - term: 离班学生
+      affects:
+        - requirement_id: REQ-CLASS-0003
+          fields:
+            - rules
+        - requirement_id: REQ-PLAN-0002
+          fields:
+            - scenarios
+```
+
+Reverse index expectations:
+
+- Generate reverse indexes from current specs when possible; do not treat them as authoritative truth.
+- Terms should come from `domain_terms`, rules, preconditions, scenarios, acceptance criteria, and trace related requirements.
+- Use reverse indexes during implementation audits to list adjacent requirements that might be affected by the same boundary.
 
 ## Code Entrypoint Annotation
 

@@ -44,6 +44,11 @@ aifr_spec:
     - version: "1.0.0"
       change_type: initial
       summary: 初始版本
+
+  implementation:
+    status: not_started
+    updated_at: null
+    notes: []
 ```
 
 ## Requirement Update
@@ -105,8 +110,10 @@ impact_analysis:
     level: high
     reason: 新增优惠券部分退款规则，需要新增边界测试
     recommended_tests:
-      - shouldCalculatePartialRefundWithCoupon
-      - shouldNotRefundCouponBeyondPaidAmount
+      planned:
+        - shouldCalculatePartialRefundWithCoupon
+        - shouldNotRefundCouponBeyondPaidAmount
+      implemented: []
 
   review_impact:
     recommended_reviewers:

@@ -47,6 +47,7 @@ REQUIRED_TOP_LEVEL_FIELDS = [
     "acceptance_criteria",
     "interfaces",
     "trace",
+    "implementation",
     "risk",
     "non_functional",
 ]
@@ -56,6 +57,7 @@ ALLOWED_STATUSES = {"draft", "review", "approved", "deprecated", "superseded"}
 ALLOWED_PRIORITIES = {"low", "medium", "high", "critical"}
 ALLOWED_RISK_LEVELS = {"low", "medium", "high", "critical"}
 ALLOWED_CHANGE_TYPES = {"initial", "patch", "minor", "major", "deprecated", "needs_review"}
+ALLOWED_IMPLEMENTATION_STATUSES = {"not_started", "partial", "implemented", "verified"}
 
 
 def validate_required_files(root: Path) -> list[str]:
@@ -190,6 +192,16 @@ def risk_level(text: str) -> str | None:
 
 
 def nested_scalar(text: str, section: str, field: str) -> str | None:
+    body = section_body(text, section)
+    if body is None:
+        return None
+    value = re.search(rf"^\s+{re.escape(field)}:\s*(.+?)\s*$", body, re.MULTILINE)
+    if not value:
+        return None
+    return value.group(1).strip().strip("\"'")
+
+
+def section_body(text: str, section: str) -> str | None:
     match = re.search(
         rf"^{re.escape(section)}:\n(?P<body>.*?)(?=^[A-Za-z_][A-Za-z0-9_]*:|\Z)",
         text,
@@ -197,10 +209,73 @@ def nested_scalar(text: str, section: str, field: str) -> str | None:
     )
     if not match:
         return None
-    value = re.search(rf"^\s+{re.escape(field)}:\s*(.+?)\s*$", match.group("body"), re.MULTILINE)
-    if not value:
+    return match.group("body")
+
+
+def nested_block_body(text: str, section: str, field: str) -> str | None:
+    parent_body = section_body(text, section)
+    if parent_body is None:
         return None
-    return value.group(1).strip().strip("\"'")
+    match = re.search(
+        rf"^\s{{2}}{re.escape(field)}:\s*\n(?P<body>.*?)(?=^\s{{2}}[A-Za-z_][A-Za-z0-9_]*:|^[A-Za-z_][A-Za-z0-9_]*:|\Z)",
+        parent_body,
+        re.MULTILINE | re.DOTALL,
+    )
+    if not match:
+        return None
+    return match.group("body")
+
+
+def collect_nested_values(text: str, section: str, field: str) -> list[str]:
+    body = section_body(text, section)
+    if body is None:
+        return []
+    return [match.group(1) for match in re.finditer(rf"^\s+{re.escape(field)}:\s*([A-Za-z0-9_-]+)\s*$", body, re.MULTILINE)]
+
+
+def validate_trace_tests_shape(text: str, warnings: list[str]) -> None:
+    tests_body = nested_block_body(text, "trace", "expected_tests")
+    if tests_body is None:
+        return
+    if re.search(r"^\s{4}-\s+\S", tests_body, re.MULTILINE):
+        warnings.append("trace.expected_tests should separate planned and implemented tests instead of using a flat list")
+        return
+    if not re.search(r"^\s+planned:\s*(?:\[\])?\s*(?:\n|$)", tests_body, re.MULTILINE):
+        warnings.append("trace.expected_tests should include planned")
+    if not re.search(r"^\s+implemented:\s*(?:\[\])?\s*(?:\n|$)", tests_body, re.MULTILINE):
+        warnings.append("trace.expected_tests should include implemented")
+
+
+def validate_reused_endpoint_authorization(text: str, warnings: list[str]) -> None:
+    interface_body = section_body(text, "interfaces")
+    if interface_body is None or "reuse_existing_endpoint: true" not in interface_body:
+        return
+    for block in re.split(r"(?=^\s*-\s+)", interface_body, flags=re.MULTILINE):
+        if "reuse_existing_endpoint: true" in block and "authorization_source:" not in block:
+            warnings.append("interfaces.apis entries with reuse_existing_endpoint: true should identify authorization_source")
+
+
+def validate_implementation_coverage(text: str, rule_ids: list[str], acceptance_ids: list[str], errors: list[str], warnings: list[str]) -> None:
+    implementation_body = section_body(text, "implementation")
+    if implementation_body is None:
+        return
+
+    status = nested_scalar(text, "implementation", "status")
+    if status is None:
+        errors.append("implementation.status is required")
+    elif status not in ALLOWED_IMPLEMENTATION_STATUSES:
+        allowed = ", ".join(sorted(ALLOWED_IMPLEMENTATION_STATUSES))
+        errors.append(f"implementation.status must be one of: {allowed}")
+
+    for rule_id in collect_nested_values(text, "implementation", "rule_id"):
+        if rule_id not in rule_ids:
+            errors.append(f"implementation.rule_coverage references missing rule: {rule_id}")
+    for acceptance_id in collect_nested_values(text, "implementation", "acceptance_criterion_id"):
+        if acceptance_id not in acceptance_ids:
+            errors.append(f"implementation.acceptance_coverage references missing acceptance criterion: {acceptance_id}")
+
+    if status == "verified" and not re.search(r"verification|verified_by|commands:", implementation_body):
+        warnings.append("implementation.status verified should include verification evidence such as commands or verified_by")
 
 
 def relative_posix(root: Path, path: Path) -> str:
@@ -441,6 +516,9 @@ def validate_spec_file(spec_path: Path) -> tuple[list[str], list[str]]:
     rule_ids = collect_ids(text, "rules")
     scenario_ids = collect_ids(text, "scenarios")
     acceptance_ids = collect_ids(text, "acceptance_criteria")
+    validate_trace_tests_shape(text, warnings)
+    validate_reused_endpoint_authorization(text, warnings)
+    validate_implementation_coverage(text, rule_ids, acceptance_ids, errors, warnings)
 
     if not rule_ids:
         errors.append("rules must include at least one rule id")

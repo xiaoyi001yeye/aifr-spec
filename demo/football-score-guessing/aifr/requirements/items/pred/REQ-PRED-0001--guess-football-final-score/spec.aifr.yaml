@@ -206,8 +206,16 @@ aifr_spec:
       - service: ScoreGuessGenerator
       - method_hint: generateRandomScoreGuess
     expected_tests:
-      - FootballScoreGuessPageTest
-      - ScoreGuessGeneratorTest
+      planned:
+        - FootballScoreGuessPageTest
+        - ScoreGuessGeneratorTest
+      implemented: []
+
+  implementation:
+    status: partial
+    updated_at: null
+    notes:
+      - Demo page exists; automated test coverage is planned but not recorded as implemented in this spec.
 
   risk:
     level: low

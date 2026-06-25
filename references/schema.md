@@ -1,6 +1,6 @@
 # AIFR Schema
 
-AIFR specifications are YAML documents that describe a requirement with enough business context, deterministic rules, executable scenarios, acceptance criteria, interfaces, traceability, risk, non-functional expectations, and semantic version metadata for implementation and review.
+AIFR specifications are YAML documents that describe a requirement with enough business context, deterministic rules, executable scenarios, acceptance criteria, interfaces, traceability, implementation status, risk, non-functional expectations, and semantic version metadata for implementation and review.
 
 ## V1 Use Cases
 
@@ -11,6 +11,7 @@ AIFR specifications are YAML documents that describe a requirement with enough b
 - Describe a release or product baseline as a snapshot of requirement versions.
 - Locate requirements through stable ids, manifests, indexes, and canonical paths.
 - Annotate stable code entrypoints with AIFR requirement ids for implementation traceability.
+- Audit implementation coverage by separating planned code/tests from implemented and verified coverage.
 
 ## Top-Level Fields
 
@@ -57,6 +58,7 @@ Required fields:
 - `acceptance_criteria`: Reviewable criteria linked to rules or scenarios.
 - `interfaces`: APIs, events, jobs, or other system boundaries affected by the requirement.
 - `trace`: Expected implementation and test trace targets.
+- `implementation`: Machine-updatable implementation status and rule-level coverage.
 - `risk`: Risk level and reasons.
 - `non_functional`: Performance, auditability, reliability, security, or compliance constraints.
 
@@ -193,14 +195,91 @@ Use `interfaces` to describe affected integration points. For APIs, include:
 - `request_schema`
 - `response_schema`
 
+Optional API fields:
+
+- `reuse_existing_endpoint`: `true` when the requirement intentionally reuses an existing endpoint instead of defining a new one.
+- `authorization_source`: Existing service, policy, guard, permission check, or API that must recheck authorization for this interface.
+
+When `reuse_existing_endpoint: true`, include `authorization_source` unless authorization is not relevant and the reason is explicit in the interface note.
+
 ### trace
 
 Use `trace` to guide implementation and testing.
 
 - `expected_code`: Expected service, module, method, handler, or command targets.
-- `expected_tests`: Expected automated test classes, files, or suites.
+- `expected_tests.planned`: Tests expected or recommended by the requirement, even if they do not exist yet.
+- `expected_tests.implemented`: Tests found in the repository and believed to cover this requirement.
+- `related_requirements`: Adjacent requirement ids affected by the same business term, permission boundary, lifecycle state, visibility rule, or shared interface.
 
 Code entrypoint comments are implementation traceability aids. They should use existing requirement ids from `aifr_spec.id` and should be placed at stable entrypoints identified by `trace.expected_code`, not modeled as a separate schema field in V1.
+
+Use this shape for test traceability:
+
+```yaml
+trace:
+  expected_tests:
+    planned:
+      - RefundServiceTest
+      - RefundControllerTest
+    implemented:
+      - tests/payment/RefundServiceTest.java
+```
+
+### implementation
+
+Use `implementation` for machine-updatable implementation audit state. It records what exists now; it does not replace requirement review `status`.
+
+- `status`: `not_started`, `partial`, `implemented`, or `verified`.
+- `updated_at`: Last implementation audit timestamp or `null`.
+- `notes`: Short implementation notes or an empty list.
+- `rule_coverage`: Optional per-rule coverage entries.
+- `acceptance_coverage`: Optional per-acceptance-criterion coverage entries.
+
+Coverage entries should distinguish planned and implemented tests:
+
+```yaml
+implementation:
+  status: partial
+  updated_at: "2026-06-26"
+  notes:
+    - 服务层已实现退款上限，Controller 覆盖仍缺失。
+  rule_coverage:
+    - rule_id: RULE-001
+      status: verified
+      code:
+        - RefundService.calculateRefundAmount
+      tests:
+        planned:
+          - RefundControllerTest
+        implemented:
+          - RefundServiceTest.shouldCapRefundAtPaidAmount
+```
+
+Implementation status meanings:
+
+- `not_started`: No matching implementation has been found.
+- `partial`: Some code or tests exist, but at least one rule or acceptance criterion lacks coverage.
+- `implemented`: Code coverage appears complete, but relevant tests have not been run or do not fully prove the requirement.
+- `verified`: Code and tests cover the requirement, and the relevant verification commands passed.
+
+### recommended_vertical_slices
+
+Use `recommended_vertical_slices` for large requirements that combine multiple workflows, resource types, actors, or permission boundaries. Each slice should be independently implementable and testable.
+
+```yaml
+recommended_vertical_slices:
+  - id: SLICE-001
+    name: 隐式消息流和纯文本动态
+    covers:
+      rules:
+        - RULE-001
+      acceptance_criteria:
+        - AC-001
+    suggested_tests:
+      planned:
+        - GroupFeedTextMessageServiceTest
+      implemented: []
+```
 
 ### risk
 
@@ -236,6 +315,10 @@ Use these rules for manual quality review. `scripts/validate_aifr_spec.py` cover
 - Scenario sections include non-empty `given`, `when`, and `then` lists.
 - Domain terms referenced in formulas or invariants are defined in `domain_terms`.
 - High or critical risk requirements include at least one `non_functional.auditability`, `security`, `compliance`, or explicit review note.
+- `implementation.status` is one of `not_started`, `partial`, `implemented`, or `verified`.
+- `trace.expected_tests` separates `planned` tests from `implemented` tests.
+- Reused API endpoints declare `reuse_existing_endpoint: true` and identify `authorization_source`.
+- Large requirements include `recommended_vertical_slices` or an explicit reason why slicing is unnecessary.
 
 ## Baseline Documents
 
@@ -301,6 +384,22 @@ requirements:
     version: "1.2.0"
     status: approved
     path: aifr/requirements/items/pay/REQ-PAY-0012--refund-amount-calculation/spec.aifr.yaml
+```
+
+Reverse indexes can be generated for cross-requirement business terms and boundary rules. They are lookup aids, not authoritative sources:
+
+```yaml
+reverse_index:
+  terms:
+    - term: 离班学生
+      affects:
+        - requirement_id: REQ-CLASS-0003
+          fields:
+            - rules
+        - requirement_id: REQ-PLAN-0002
+          fields:
+            - preconditions
+            - scenarios
 ```
 
 Detailed naming and lookup rules live in `references/naming.md`.

@@ -10,6 +10,7 @@ AIFR Spec（AI-Friendly Requirements Specification）是一个用于需求结构
 - 为单条需求维护语义版本、变更集和影响分析。
 - 用稳定路径、manifest、index 和 canonical path 让 AI 与人类可靠找到需求文件。
 - 给代码入口补充需求 ID 注释，让实现入口与 AIFR 需求可追溯对齐。
+- 审计需求实现状态，区分计划测试、已实现测试和已验证覆盖。
 
 ## 如何使用
 
@@ -59,9 +60,22 @@ grill 有两种模式：
 - 验收标准
 - 接口影响
 - 代码和测试追踪目标
+- 机器可更新的实现状态与逐规则覆盖
 - 风险与非功能要求
 
 输出目标是可评审、可实现、可测试的 AIFR YAML Spec。
+
+## 实现审计
+
+当已有代码或测试需要和 AIFR 对齐时，该 skill 会把 `trace.expected_code` 和 `trace.expected_tests.planned` 当作查找线索，而不是覆盖证明。审计后可以更新：
+
+- `implementation.status`：`not_started`、`partial`、`implemented` 或 `verified`
+- `implementation.rule_coverage` / `implementation.acceptance_coverage`
+- `trace.expected_tests.implemented`
+- 复用接口的 `reuse_existing_endpoint` 和 `authorization_source`
+- 跨需求影响的 `trace.related_requirements` 或反向索引提示
+
+只有相关验证命令通过后，才能把需求标记为 `verified`。
 
 ## 稳定命名协议
 
@@ -115,6 +129,8 @@ aifr/requirements/items/pay/REQ-PAY-0012--refund-amount-calculation/spec.aifr.ya
 ```bash
 python3 scripts/validate_aifr_spec.py .
 python3 scripts/validate_aifr_spec.py . --spec path/to/spec.yaml
+python3 scripts/validate_aifr_spec.py . --spec path/to/spec.yaml --strict
+python3 scripts/validate_aifr_spec.py . --strict
 ```
 
-该命令只做仓库结构和轻量 YAML 质量 smoke check。评审就绪仍需按 `references/quality-checklist.md`、`references/schema.md`、`references/naming.md`、`references/output-format.md` 和 `references/traceability.md` 人工检查。
+默认命令只做仓库结构和轻量 YAML 质量 smoke check。`--spec` 会检查单个需求文件的轻量 schema 规则；`--strict` 会检查跨文件一致性，例如 id、路径、index 和 update ledger。评审就绪仍需按 `references/quality-checklist.md`、`references/schema.md`、`references/naming.md`、`references/output-format.md` 和 `references/traceability.md` 人工检查。

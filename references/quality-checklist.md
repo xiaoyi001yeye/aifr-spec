@@ -19,6 +19,7 @@ When reviewing a spec, report:
 - `id`, `rules[].id`, `scenarios[].id`, and `acceptance_criteria[].id` use stable prefixes.
 - `type`, `status`, `priority`, and `risk.level` use documented values.
 - Field names and nesting match the schema.
+- `implementation` is present and uses the documented implementation status values.
 
 ## Naming And Paths
 
@@ -101,6 +102,8 @@ When reviewing a spec, report:
 ## Interfaces
 
 - APIs include method, path, request schema, and response schema.
+- APIs that reuse an existing endpoint set `reuse_existing_endpoint: true`.
+- Reused endpoints identify `authorization_source` or explicitly explain why no second authorization check is needed.
 - External systems are listed under `actors.secondary` or the relevant interface section.
 - Interface names match the implementation vocabulary used in `trace.expected_code`.
 
@@ -109,9 +112,22 @@ When reviewing a spec, report:
 - Expected code targets identify the likely service, module, method, handler, or command.
 - Code entrypoint comments, when requested or present, reference existing `aifr_spec.id` values.
 - Code entrypoint comments are placed on stable handlers, service methods, commands, jobs, policies, adapters, or orchestration functions rather than scattered through private helpers.
-- Expected tests identify test files, classes, or suites.
+- `trace.expected_tests.planned` identifies recommended test files, classes, cases, or suites.
+- `trace.expected_tests.implemented` contains only tests found in the repository.
+- Planned tests and implemented tests are not mixed in a single flat list.
+- `implementation.status` reflects the current audit result: `not_started`, `partial`, `implemented`, or `verified`.
+- `implementation.rule_coverage` or `implementation.acceptance_coverage` maps important rules or acceptance criteria to code and tests when implementation has started.
+- `verified` is used only after relevant verification commands pass.
 - Acceptance criteria link back to rules.
+- Shared business terms, permission boundaries, lifecycle states, and visibility rules list adjacent requirements in `trace.related_requirements` or a reverse index gap.
 - High-risk requirements identify auditability, security, compliance, or explicit review needs.
+
+## Vertical Slices
+
+- Large requirements that combine multiple workflows, resources, actors, or permission boundaries include `recommended_vertical_slices`.
+- Each slice lists the rules or acceptance criteria it covers.
+- Each slice has planned tests, and implemented tests are filled only after repository inspection.
+- Slice order reduces implementation risk by delivering the simplest end-to-end behavior before resource-specific or permission-specific extensions.
 
 ## Impact Analysis
 

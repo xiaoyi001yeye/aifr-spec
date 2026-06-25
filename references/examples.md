@@ -139,7 +139,22 @@ aifr_spec:
       - service: PaymentCallbackService
       - method_hint: handlePaymentSuccess
     expected_tests:
-      - PaymentCallbackServiceTest
+      planned:
+        - PaymentCallbackServiceTest
+      implemented: []
+
+  implementation:
+    status: not_started
+    updated_at: null
+    notes: []
+    rule_coverage:
+      - rule_id: RULE-001
+        status: not_started
+        code: []
+        tests:
+          planned:
+            - PaymentCallbackServiceTest
+          implemented: []
 
   risk:
     level: high
@@ -300,6 +315,22 @@ aifr_spec:
         path: /refunds
         request_schema: RefundRequest
         response_schema: RefundResponse
+        reuse_existing_endpoint: false
+
+  recommended_vertical_slices:
+    - id: SLICE-001
+      name: 退款金额上限
+      covers:
+        rules:
+          - RULE-001
+        acceptance_criteria:
+          - AC-001
+      suggested_tests:
+        planned:
+          - RefundServiceTest
+          - RefundControllerTest
+        implemented:
+          - RefundServiceTest.shouldCapRefundAtPaidAmount
 
   trace:
     related_requirements:
@@ -310,9 +341,36 @@ aifr_spec:
       - method_hint: calculateRefundAmount
       - policy_hint: CouponRefundPolicy
     expected_tests:
-      - RefundServiceTest
-      - RefundControllerTest
-      - CouponRefundPolicyTest
+      planned:
+        - RefundServiceTest
+        - RefundControllerTest
+        - CouponRefundPolicyTest
+      implemented:
+        - RefundServiceTest.shouldCapRefundAtPaidAmount
+
+  implementation:
+    status: partial
+    updated_at: "2026-06-26"
+    notes:
+      - 退款上限规则已有服务层测试；优惠券分摊和 Controller 覆盖仍需补齐。
+    rule_coverage:
+      - rule_id: RULE-001
+        status: verified
+        code:
+          - RefundService.calculateRefundAmount
+        tests:
+          planned:
+            - RefundControllerTest
+          implemented:
+            - RefundServiceTest.shouldCapRefundAtPaidAmount
+      - rule_id: RULE-004
+        status: partial
+        code:
+          - CouponRefundPolicy
+        tests:
+          planned:
+            - CouponRefundPolicyTest
+          implemented: []
 
   risk:
     level: high

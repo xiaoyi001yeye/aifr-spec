@@ -1,15 +1,15 @@
 ---
 name: aifr-spec
-description: Use when grilling, creating, updating, locating, comparing, reviewing, validating, versioning, or adding trace comments for AIFR requirements, baselines, naming paths, schema fields, output formats, or repository-local specs.
+description: Use when grilling, creating, updating, locating, comparing, reviewing, validating, versioning, implementation-auditing, or adding trace comments for AIFR requirements, baselines, schema fields, output formats, or repository-local specs.
 ---
 
 # AIFR Spec
 
-Use this skill for AIFR requirement specifications: grilling vague requests, turning source material into specs, revising existing specs, comparing semantic versions, describing baselines, locating requirement files, and checking spec quality.
+Use this skill for AIFR requirement specifications: grilling vague requests, turning source material into specs, revising existing specs, comparing semantic versions, describing baselines, locating requirement files, auditing implementation coverage, and checking spec quality.
 
 ## When to Use
 
-- User mentions AIFR, requirement specs, baselines, canonical paths, schema fields, traceability, trace comments, requirement id comments in code, quality checks, or `validate_aifr_spec.py`.
+- User mentions AIFR, requirement specs, baselines, canonical paths, schema fields, traceability, implementation status, implemented tests, trace comments, requirement id comments in code, quality checks, or `validate_aifr_spec.py`.
 - User asks to help complete or implement a requirement, but the business intent, acceptance boundary, or implementation constraints are still fuzzy.
 - User provides raw requirements, product notes, meeting notes, issues, or feature descriptions and wants structured AIFR output.
 - User asks whether a requirement change is patch/minor/major, what changed, or what code/test impact follows.
@@ -30,6 +30,7 @@ Read only the relevant references before acting:
 | Generate version updates, change sets, impact analysis, or baselines | `references/output-format.md` |
 | Review spec quality | `references/schema.md`, `references/quality-checklist.md`, `references/naming.md`, `references/output-format.md`, `references/traceability.md` |
 | Add source, decision, test, or implementation mappings | `references/traceability.md` |
+| Audit implementation coverage or update implementation status | `references/schema.md`, `references/traceability.md`, `references/quality-checklist.md` |
 | Add code entry comments aligned to requirement ids | `references/traceability.md`, `references/naming.md` |
 | Update a requirement semantic version | `references/output-format.md`, `references/update-ledger.md` |
 | Use external facts as requirement or implementation truth | `references/source-snapshot.md` |
@@ -124,6 +125,17 @@ Add or update concise trace comments at implementation entrypoints so code can b
 4. Report coverage. List each requirement id, annotated entrypoint, and any unresolved requirement or code mapping gap.
 
 Done only when every requested requirement id is resolved or explicitly reported as unresolved, every annotated code entrypoint maps to an existing `aifr_spec.id`, comments are placed at stable entrypoints rather than low-level helpers, and every ambiguous mapping is listed as an open question.
+
+### Audit Implementation Coverage
+
+Use this after or during implementation when the user wants to know whether a requirement is actually covered by code and tests. Treat `trace.expected_code` and `trace.expected_tests.planned` as search hints, not proof.
+
+1. Resolve the requirement file and inspect its rules, acceptance criteria, interfaces, `implementation`, `trace`, related requirements, and recommended vertical slices.
+2. Inspect the repository for matching code and tests. Distinguish planned tests from tests that exist and exercise the rule or acceptance criterion.
+3. Update machine-readable implementation state when asked: `implementation.status`, per-rule coverage, `trace.expected_tests.implemented`, and any related requirement index hints. Do not mark `verified` without running the relevant tests.
+4. Report gaps by requirement id, rule id or acceptance criterion id, code target, and missing planned or implemented test.
+
+Done only when every rule and acceptance criterion is marked covered, missing, or not applicable; planned tests and implemented tests are separated; reused endpoints identify the authorization source that rechecks access; related requirements affected by the same business term are named or explicitly unknown; and verification commands have passed or are reported as not run.
 
 ### Quality Check Specs
 

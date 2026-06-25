@@ -1,6 +1,6 @@
 # AIFR Schema 中文版
 
-AIFR 规范是 YAML 文档，用于描述一条需求。它需要包含足够的业务上下文、确定性规则、可执行场景、验收标准、接口、可追溯关系、风险、非功能要求和语义版本元数据，方便实现和评审。
+AIFR 规范是 YAML 文档，用于描述一条需求。它需要包含足够的业务上下文、确定性规则、可执行场景、验收标准、接口、可追溯关系、实现状态、风险、非功能要求和语义版本元数据，方便实现和评审。
 
 > 本文档是 `references/schema.md` 的中文镜像。未来更新 schema 时，必须同时更新英文版和中文版。
 
@@ -13,6 +13,7 @@ AIFR 规范是 YAML 文档，用于描述一条需求。它需要包含足够的
 - 将某个发布或产品版本描述为一组需求版本的快照。
 - 通过稳定 id、manifest、index 和 canonical path 查找需求。
 - 给稳定代码入口补充 AIFR 需求 id 注释，支持实现可追溯。
+- 通过区分计划中的代码/测试和已实现、已验证覆盖来审计实现覆盖状态。
 
 ## 顶层字段
 
@@ -59,6 +60,7 @@ aifr_spec:
 - `acceptance_criteria`：可评审的验收标准，需关联规则或场景。
 - `interfaces`：受需求影响的 API、事件、任务或其他系统边界。
 - `trace`：预期实现位置和测试目标。
+- `implementation`：机器可更新的实现状态和规则级覆盖情况。
 - `risk`：风险等级和原因。
 - `non_functional`：性能、可审计性、可靠性、安全性或合规性约束。
 
@@ -195,14 +197,91 @@ REQ-PAY-0012@1.2.0
 - `request_schema`
 - `response_schema`
 
+可选 API 字段：
+
+- `reuse_existing_endpoint`：当需求有意复用已有接口而不是定义新接口时为 `true`。
+- `authorization_source`：必须重新校验授权的已有服务、策略、守卫、权限检查或 API。
+
+当 `reuse_existing_endpoint: true` 时，应包含 `authorization_source`；除非该接口不涉及授权，并且在接口说明中明确原因。
+
 ### trace
 
 使用 `trace` 指导实现和测试。
 
 - `expected_code`：预期的服务、模块、方法、处理器或命令目标。
-- `expected_tests`：预期的自动化测试类、文件或套件。
+- `expected_tests.planned`：需求预期或推荐的测试，即使仓库中还不存在。
+- `expected_tests.implemented`：仓库中已找到、并认为覆盖该需求的测试。
+- `related_requirements`：受同一业务术语、权限边界、生命周期状态、可见性规则或共享接口影响的相邻需求 id。
 
 代码入口注释是实现可追溯辅助信息。它应使用 `aifr_spec.id` 中已有的需求 id，并放在 `trace.expected_code` 标识的稳定入口处；V1 不把它建模为单独 schema 字段。
+
+测试可追溯应使用以下结构：
+
+```yaml
+trace:
+  expected_tests:
+    planned:
+      - RefundServiceTest
+      - RefundControllerTest
+    implemented:
+      - tests/payment/RefundServiceTest.java
+```
+
+### implementation
+
+使用 `implementation` 记录机器可更新的实现审计状态。它描述当前实现情况，不替代需求评审用的 `status`。
+
+- `status`：`not_started`、`partial`、`implemented` 或 `verified`。
+- `updated_at`：最近一次实现审计时间；未知时为 `null`。
+- `notes`：简短实现备注，或空列表。
+- `rule_coverage`：可选。逐条规则覆盖情况。
+- `acceptance_coverage`：可选。逐条验收标准覆盖情况。
+
+覆盖条目应区分计划测试和已实现测试：
+
+```yaml
+implementation:
+  status: partial
+  updated_at: "2026-06-26"
+  notes:
+    - 服务层已实现退款上限，Controller 覆盖仍缺失。
+  rule_coverage:
+    - rule_id: RULE-001
+      status: verified
+      code:
+        - RefundService.calculateRefundAmount
+      tests:
+        planned:
+          - RefundControllerTest
+        implemented:
+          - RefundServiceTest.shouldCapRefundAtPaidAmount
+```
+
+实现状态含义：
+
+- `not_started`：尚未找到匹配实现。
+- `partial`：已有部分代码或测试，但至少一条规则或验收标准缺少覆盖。
+- `implemented`：代码覆盖看起来完整，但相关测试尚未运行或不能完整证明需求。
+- `verified`：代码和测试覆盖需求，并且相关验证命令已通过。
+
+### recommended_vertical_slices
+
+对同时包含多个工作流、资源类型、参与者或权限边界的大需求，使用 `recommended_vertical_slices`。每个切片都应能独立实现和测试。
+
+```yaml
+recommended_vertical_slices:
+  - id: SLICE-001
+    name: 隐式消息流和纯文本动态
+    covers:
+      rules:
+        - RULE-001
+      acceptance_criteria:
+        - AC-001
+    suggested_tests:
+      planned:
+        - GroupFeedTextMessageServiceTest
+      implemented: []
+```
 
 ### risk
 
@@ -238,6 +317,10 @@ REQ-PAY-0012@1.2.0
 - 场景必须包含非空的 `given`、`when` 和 `then` 列表。
 - 公式或不变量中引用的领域术语必须在 `domain_terms` 中定义。
 - 高风险或关键风险需求必须至少包含 `non_functional.auditability`、`security`、`compliance` 或明确的评审说明。
+- `implementation.status` 必须是 `not_started`、`partial`、`implemented` 或 `verified` 之一。
+- `trace.expected_tests` 必须区分 `planned` 测试和 `implemented` 测试。
+- 复用已有 API 时必须声明 `reuse_existing_endpoint: true` 并标识 `authorization_source`。
+- 大需求应包含 `recommended_vertical_slices`，或明确说明不需要切片的原因。
 
 ## Baseline 文档
 
@@ -303,6 +386,22 @@ requirements:
     version: "1.2.0"
     status: approved
     path: aifr/requirements/items/pay/REQ-PAY-0012--refund-amount-calculation/spec.aifr.yaml
+```
+
+可以为跨需求业务术语和边界规则生成反向索引。它们是查找辅助，不是权威来源：
+
+```yaml
+reverse_index:
+  terms:
+    - term: 离班学生
+      affects:
+        - requirement_id: REQ-CLASS-0003
+          fields:
+            - rules
+        - requirement_id: REQ-PLAN-0002
+          fields:
+            - preconditions
+            - scenarios
 ```
 
 详细命名和查找规则见 `references/naming.md`。
